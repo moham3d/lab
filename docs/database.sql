@@ -476,12 +476,12 @@ CREATE INDEX idx_audit_user_date ON audit_log(changed_by, changed_at);
 
 -- Function to update timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS '
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+' LANGUAGE plpgsql;
 
 -- Apply update triggers
 CREATE TRIGGER update_patients_updated_at BEFORE UPDATE ON patients FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

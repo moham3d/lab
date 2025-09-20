@@ -89,6 +89,7 @@ migration_data/
 # Claude workspace
 .claude/
 
+
 # Uploads directory (keep structure but ignore contents)
 uploads/*
 !uploads/.gitkeep
