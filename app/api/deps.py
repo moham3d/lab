@@ -5,7 +5,7 @@ API dependencies
 from typing import Generator
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,14 +15,13 @@ from app.database import get_db
 from app.models.user import User
 from app.services.auth_service import AuthService
 
-reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login"
-)
+# Use HTTPBearer for simpler JWT token authentication
+security = HTTPBearer()
 
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),
-    token: str = Depends(reusable_oauth2)
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> User:
     """Get current authenticated user"""
     credentials_exception = HTTPException(
@@ -33,16 +32,15 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            credentials.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        username: str = payload.get("sub")
+        if username is None:
             raise credentials_exception
     except jwt.JWTError:
         raise credentials_exception
 
-    auth_service = AuthService(db)
-    user = await auth_service.get_user_by_id(user_id)
+    user = await AuthService.get_user_by_username(db, username)
     if user is None:
         raise credentials_exception
 

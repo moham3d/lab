@@ -10,8 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user, get_db
 from app.models.user import User
-from app.models.visit import VisitStatus
-from app.schemas.visit import VisitCreate, VisitResponse, VisitSummary, VisitUpdate
+from app.schemas.visit import VisitCreate, VisitResponse, VisitSummary, VisitUpdate, VisitStatus
 from app.services.visit_service import VisitService
 
 router = APIRouter()

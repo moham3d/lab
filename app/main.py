@@ -7,13 +7,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.security import HTTPBearer
 import uvicorn
 
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.security import create_initial_admin
 from app.database import create_tables
+from app.utils.file_handler import FileHandler
 
 
 @asynccontextmanager
@@ -22,6 +22,7 @@ async def lifespan(app: FastAPI):
     # Startup
     await create_tables()
     await create_initial_admin()
+    FileHandler.ensure_upload_directory()
 
     yield
 
@@ -52,9 +53,6 @@ app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=settings.ALLOWED_HOSTS,
 )
-
-# Security scheme
-security = HTTPBearer()
 
 # Include API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)

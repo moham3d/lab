@@ -26,7 +26,7 @@ async def create_patient(
     service = PatientService(db)
     try:
         db_patient = await service.create_patient(patient, current_user.id)
-        return PatientResponse.from_orm(db_patient)
+        return PatientResponse.model_validate(db_patient)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -42,7 +42,7 @@ async def get_patient(
     db_patient = await service.get_patient(patient_id)
     if not db_patient:
         raise HTTPException(status_code=404, detail="Patient not found")
-    return PatientResponse.from_orm(db_patient)
+    return PatientResponse.model_validate(db_patient)
 
 
 @router.get("/", response_model=List[PatientResponse])
@@ -61,7 +61,7 @@ async def get_patients(
         # For now, return recent patients if no search
         patients = await service.get_recent_patients(limit)
 
-    return [PatientResponse.from_orm(patient) for patient in patients]
+    return [PatientResponse.model_validate(patient) for patient in patients]
 
 
 @router.put("/{patient_id}", response_model=PatientResponse)
@@ -77,7 +77,7 @@ async def update_patient(
         db_patient = await service.update_patient(patient_id, patient_update, current_user.id)
         if not db_patient:
             raise HTTPException(status_code=404, detail="Patient not found")
-        return PatientResponse.from_orm(db_patient)
+        return PatientResponse.model_validate(db_patient)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -107,7 +107,7 @@ async def get_patient_by_ssn(
     db_patient = await service.get_patient_by_ssn(ssn)
     if not db_patient:
         raise HTTPException(status_code=404, detail="Patient not found")
-    return PatientResponse.from_orm(db_patient)
+    return PatientResponse.model_validate(db_patient)
 
 
 @router.get("/search/mobile/{mobile}", response_model=PatientResponse)
@@ -121,7 +121,7 @@ async def get_patient_by_mobile(
     db_patient = await service.get_patient_by_mobile(mobile)
     if not db_patient:
         raise HTTPException(status_code=404, detail="Patient not found")
-    return PatientResponse.from_orm(db_patient)
+    return PatientResponse.model_validate(db_patient)
 
 
 @router.get("/stats/count", response_model=dict)

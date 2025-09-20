@@ -6,9 +6,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, validator
-
-from app.models.assessment import NursingAssessment, RadiologyAssessment
+from pydantic import BaseModel, Field, field_validator
 
 
 class NursingAssessmentBase(BaseModel):
@@ -40,17 +38,19 @@ class NursingAssessmentBase(BaseModel):
     # Notes
     notes: Optional[str] = Field(None, max_length=2000, description="Additional notes")
 
-    @validator('blood_pressure_diastolic')
-    def validate_blood_pressure(cls, v, values):
+    @field_validator('blood_pressure_diastolic')
+    @classmethod
+    def validate_blood_pressure(cls, v, info):
         """Validate blood pressure relationship"""
         if v is None:
             return v
-        systolic = values.get('blood_pressure_systolic')
+        systolic = info.data.get('blood_pressure_systolic')
         if systolic is not None and v >= systolic:
             raise ValueError('Diastolic pressure must be less than systolic pressure')
         return v
 
-    @validator('height_cm', 'weight_kg')
+    @field_validator('height_cm', 'weight_kg')
+    @classmethod
     def validate_physical_measurements(cls, v):
         """Validate physical measurements are reasonable"""
         if v is None:
@@ -83,12 +83,13 @@ class NursingAssessmentUpdate(BaseModel):
     mobility_status: Optional[str] = Field(None, max_length=100)
     notes: Optional[str] = Field(None, max_length=2000)
 
-    @validator('blood_pressure_diastolic')
-    def validate_blood_pressure(cls, v, values):
+    @field_validator('blood_pressure_diastolic')
+    @classmethod
+    def validate_blood_pressure(cls, v, info):
         """Validate blood pressure relationship"""
         if v is None:
             return v
-        systolic = values.get('blood_pressure_systolic')
+        systolic = info.data.get('blood_pressure_systolic')
         if systolic is not None and v >= systolic:
             raise ValueError('Diastolic pressure must be less than systolic pressure')
         return v
@@ -101,8 +102,7 @@ class NursingAssessmentResponse(NursingAssessmentBase):
     assessed_at: datetime
     bmi: Optional[float]
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class RadiologyAssessmentBase(BaseModel):
@@ -117,7 +117,8 @@ class RadiologyAssessmentBase(BaseModel):
     body_region: Optional[str] = Field(None, max_length=100, description="Body region examined")
     contrast_used: Optional[str] = Field(None, max_length=100, description="Contrast agents used")
 
-    @validator('findings')
+    @field_validator('findings')
+    @classmethod
     def validate_findings(cls, v):
         """Validate findings content"""
         if not v or not v.strip():
@@ -126,7 +127,8 @@ class RadiologyAssessmentBase(BaseModel):
             raise ValueError('Findings must be at least 10 characters')
         return v.strip()
 
-    @validator('diagnosis')
+    @field_validator('diagnosis')
+    @classmethod
     def validate_diagnosis(cls, v):
         """Validate diagnosis if provided"""
         if v is None:
@@ -152,7 +154,8 @@ class RadiologyAssessmentUpdate(BaseModel):
     body_region: Optional[str] = Field(None, max_length=100)
     contrast_used: Optional[str] = Field(None, max_length=100)
 
-    @validator('findings')
+    @field_validator('findings')
+    @classmethod
     def validate_findings(cls, v):
         """Validate findings content"""
         if v is None:
@@ -163,7 +166,8 @@ class RadiologyAssessmentUpdate(BaseModel):
             raise ValueError('Findings must be at least 10 characters')
         return v.strip()
 
-    @validator('diagnosis')
+    @field_validator('diagnosis')
+    @classmethod
     def validate_diagnosis(cls, v):
         """Validate diagnosis if provided"""
         if v is None or not v.strip():
@@ -181,5 +185,4 @@ class RadiologyAssessmentResponse(RadiologyAssessmentBase):
     has_diagnosis: bool
     findings_summary: str
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

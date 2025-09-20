@@ -5,11 +5,22 @@ Patient and Visit Pydantic schemas with validation
 from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
+from enum import Enum
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
-from app.models.patient import Gender
-from app.models.visit import VisitStatus
+# Define enums locally for Pydantic compatibility
+class Gender(str, Enum):
+    """Patient gender enumeration"""
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+
+class VisitStatus(str, Enum):
+    """Visit status enumeration"""
+    OPEN = "open"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
 
 
 class PatientBase(BaseModel):
@@ -20,9 +31,10 @@ class PatientBase(BaseModel):
     medical_number: Optional[str] = Field(None, max_length=20, description="Medical record number")
     full_name: str = Field(..., min_length=2, max_length=255, description="Patient full name")
     date_of_birth: Optional[date] = Field(None, description="Patient date of birth")
-    gender: Optional[Gender] = Field(None, description="Patient gender")
+    gender: Optional[str] = Field(None, description="Patient gender")
 
-    @validator('ssn')
+    @field_validator('ssn')
+    @classmethod
     def validate_ssn(cls, v):
         """Validate SSN format"""
         import re
@@ -30,7 +42,8 @@ class PatientBase(BaseModel):
             raise ValueError('SSN must be exactly 14 digits')
         return v
 
-    @validator('mobile_number')
+    @field_validator('mobile_number')
+    @classmethod
     def validate_mobile(cls, v):
         """Validate mobile number format"""
         import re
@@ -38,7 +51,8 @@ class PatientBase(BaseModel):
             raise ValueError('Mobile number must be in Egyptian format (01[0-2]xxxxxxxx)')
         return v
 
-    @validator('phone_number')
+    @field_validator('phone_number')
+    @classmethod
     def validate_phone(cls, v):
         """Validate phone number format if provided"""
         if v is None:
@@ -48,7 +62,8 @@ class PatientBase(BaseModel):
             raise ValueError('Phone number must be in Egyptian format (01[0-2]xxxxxxxx)')
         return v
 
-    @validator('full_name')
+    @field_validator('full_name')
+    @classmethod
     def validate_full_name(cls, v):
         """Validate full name"""
         if not v or not v.strip():
@@ -70,9 +85,10 @@ class PatientUpdate(BaseModel):
     medical_number: Optional[str] = Field(None, max_length=20)
     full_name: Optional[str] = Field(None, min_length=2, max_length=255)
     date_of_birth: Optional[date] = None
-    gender: Optional[Gender] = None
+    gender: Optional[str] = None
 
-    @validator('mobile_number')
+    @field_validator('mobile_number')
+    @classmethod
     def validate_mobile(cls, v):
         """Validate mobile number format"""
         if v is None:
@@ -82,7 +98,8 @@ class PatientUpdate(BaseModel):
             raise ValueError('Mobile number must be in Egyptian format (01[0-2]xxxxxxxx)')
         return v
 
-    @validator('phone_number')
+    @field_validator('phone_number')
+    @classmethod
     def validate_phone(cls, v):
         """Validate phone number format if provided"""
         if v is None:
@@ -92,7 +109,8 @@ class PatientUpdate(BaseModel):
             raise ValueError('Phone number must be in Egyptian format (01[0-2]xxxxxxxx)')
         return v
 
-    @validator('full_name')
+    @field_validator('full_name')
+    @classmethod
     def validate_full_name(cls, v):
         """Validate full name"""
         if v is None:
@@ -108,12 +126,10 @@ class PatientResponse(PatientBase):
     """Schema for patient response"""
     id: UUID
     is_active: bool
-    age: Optional[int]
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class PatientVisitBase(BaseModel):
@@ -122,7 +138,8 @@ class PatientVisitBase(BaseModel):
     chief_complaint: Optional[str] = Field(None, max_length=1000, description="Chief complaint")
     notes: Optional[str] = Field(None, max_length=2000, description="Additional notes")
 
-    @validator('visit_date')
+    @field_validator('visit_date')
+    @classmethod
     def validate_visit_date(cls, v):
         """Validate that visit date is not in the future"""
         if v > datetime.now(v.tzinfo) if v.tzinfo else v > datetime.now():
@@ -142,7 +159,8 @@ class PatientVisitUpdate(BaseModel):
     chief_complaint: Optional[str] = Field(None, max_length=1000)
     notes: Optional[str] = Field(None, max_length=2000)
 
-    @validator('visit_date')
+    @field_validator('visit_date')
+    @classmethod
     def validate_visit_date(cls, v):
         """Validate that visit date is not in the future"""
         if v is None:
@@ -162,5 +180,4 @@ class PatientVisitResponse(PatientVisitBase):
     created_by: UUID
     updated_by: Optional[UUID]
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

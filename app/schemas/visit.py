@@ -3,12 +3,18 @@ Visit-specific schemas (imports from patient.py for consistency)
 """
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
-from app.models.visit import VisitStatus
+
+class VisitStatus(str, Enum):
+    """Visit status enumeration"""
+    OPEN = "open"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
 
 
 class VisitBase(BaseModel):
@@ -17,7 +23,8 @@ class VisitBase(BaseModel):
     chief_complaint: Optional[str] = Field(None, max_length=1000, description="Chief complaint")
     notes: Optional[str] = Field(None, max_length=2000, description="Additional notes")
 
-    @validator('visit_date')
+    @field_validator('visit_date')
+    @classmethod
     def validate_visit_date(cls, v):
         """Validate that visit date is not in the future"""
         if v > datetime.now(v.tzinfo) if v.tzinfo else v > datetime.now():
@@ -37,7 +44,8 @@ class VisitUpdate(BaseModel):
     chief_complaint: Optional[str] = Field(None, max_length=1000)
     notes: Optional[str] = Field(None, max_length=2000)
 
-    @validator('visit_date')
+    @field_validator('visit_date')
+    @classmethod
     def validate_visit_date(cls, v):
         """Validate that visit date is not in the future"""
         if v is None:
@@ -57,8 +65,7 @@ class VisitResponse(VisitBase):
     created_by: UUID
     updated_by: Optional[UUID]
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class VisitSummary(BaseModel):
@@ -71,5 +78,4 @@ class VisitSummary(BaseModel):
     chief_complaint: Optional[str]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

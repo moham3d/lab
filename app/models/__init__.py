@@ -11,6 +11,7 @@ from .user import User
 from .patient import Patient
 from .visit import PatientVisit
 from .assessment import NursingAssessment, RadiologyAssessment
+from .document import Document
 
 __all__ = [
     "Base",
@@ -18,5 +19,6 @@ __all__ = [
     "Patient",
     "PatientVisit",
     "NursingAssessment",
-    "RadiologyAssessment"
+    "RadiologyAssessment",
+    "Document"
 ]

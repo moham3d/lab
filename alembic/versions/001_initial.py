@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column('first_name', sa.String(), nullable=False),
         sa.Column('last_name', sa.String(), nullable=False),
         sa.Column('hashed_password', sa.String(), nullable=False),
-        sa.Column('role', sa.Enum('nurse', 'physician', 'admin', name='userrole'), nullable=False),
+        sa.Column('role', sa.String(length=20), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), onupdate=sa.text('now()'), nullable=False),
@@ -52,12 +52,12 @@ def upgrade() -> None:
         sa.Column('medical_number', sa.String(length=20), nullable=True),
         sa.Column('full_name', sa.String(length=255), nullable=False),
         sa.Column('date_of_birth', sa.Date(), nullable=True),
-        sa.Column('gender', sa.Enum('male', 'female', 'other', name='gender'), nullable=True),
+        sa.Column('gender', sa.String(length=10), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), onupdate=sa.text('now()'), nullable=False),
-        sa.Column('created_by', sa.UUID(), nullable=True),
-        sa.Column('updated_by', sa.UUID(), nullable=True),
+        sa.Column('created_by', sa.Integer(), nullable=True),
+        sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
         sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
@@ -73,13 +73,13 @@ def upgrade() -> None:
         sa.Column('id', sa.UUID(), nullable=False),
         sa.Column('patient_id', sa.UUID(), nullable=False),
         sa.Column('visit_date', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('status', sa.Enum('open', 'completed', 'cancelled', name='visitstatus'), nullable=False),
+        sa.Column('status', sa.String(length=20), nullable=False),
         sa.Column('chief_complaint', sa.Text(), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), onupdate=sa.text('now()'), nullable=False),
-        sa.Column('created_by', sa.UUID(), nullable=False),
-        sa.Column('updated_by', sa.UUID(), nullable=True),
+        sa.Column('created_by', sa.Integer(), nullable=False),
+        sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
         sa.ForeignKeyConstraint(['patient_id'], ['patients.id'], ),
         sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
@@ -111,7 +111,7 @@ def upgrade() -> None:
         sa.Column('skin_condition', sa.Text(), nullable=True),
         sa.Column('mobility_status', sa.String(length=100), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('assessed_by', sa.UUID(), nullable=False),
+        sa.Column('assessed_by', sa.Integer(), nullable=False),
         sa.Column('assessed_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.ForeignKeyConstraint(['assessed_by'], ['users.id'], ),
         sa.ForeignKeyConstraint(['visit_id'], ['patient_visits.id'], ),
@@ -130,7 +130,7 @@ def upgrade() -> None:
         sa.Column('body_region', sa.String(length=100), nullable=True),
         sa.Column('contrast_used', sa.String(length=100), nullable=True),
         sa.Column('image_urls', sa.String(), nullable=True),
-        sa.Column('assessed_by', sa.UUID(), nullable=False),
+        sa.Column('assessed_by', sa.Integer(), nullable=False),
         sa.Column('assessed_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.ForeignKeyConstraint(['assessed_by'], ['users.id'], ),
         sa.ForeignKeyConstraint(['visit_id'], ['patient_visits.id'], ),
@@ -173,6 +173,6 @@ def downgrade() -> None:
     op.drop_table('users')
     
     # Drop enums
-    op.execute("DROP TYPE IF EXISTS visitstatus")
-    op.execute("DROP TYPE IF EXISTS gender")
-    op.execute("DROP TYPE IF EXISTS userrole")
+    # op.execute("DROP TYPE IF EXISTS visitstatus")
+    # op.execute("DROP TYPE IF EXISTS gender")
+    # op.execute("DROP TYPE IF EXISTS userrole")

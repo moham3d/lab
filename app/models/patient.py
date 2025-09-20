@@ -35,14 +35,14 @@ class Patient(Base):
     medical_number = Column(String(20), unique=True, nullable=True, index=True)
     full_name = Column(String(255), nullable=False)
     date_of_birth = Column(Date, nullable=True)
-    gender = Column(Enum(Gender), nullable=True)
+    gender = Column(String(10), nullable=True)  # Will validate in application logic
     is_active = Column(Boolean, default=True, nullable=False)
 
     # Audit fields
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-    created_by = Column(UUID(as_uuid=True), nullable=True)
-    updated_by = Column(UUID(as_uuid=True), nullable=True)
+    created_by = Column(Integer, nullable=True)
+    updated_by = Column(Integer, nullable=True)
 
     # Relationships
     visits = relationship("PatientVisit", back_populates="patient", cascade="all, delete-orphan")
