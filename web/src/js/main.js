@@ -12,9 +12,12 @@ document.addEventListener('alpine:init', () => {
     role: null,
     isAuthenticated: false,
 
-    init() {
+    async init() {
       if (this.token) {
-        this.validateToken();
+        await this.validateToken();
+      } else {
+        // No token, user is not authenticated
+        this.isAuthenticated = false;
       }
     },
 
@@ -33,7 +36,7 @@ document.addEventListener('alpine:init', () => {
         }
 
         const data = await response.json();
-        this.setAuth(data.user, data.access_token);
+        this.setAuth(data, data.access_token);
         return { success: true };
       } catch (error) {
         console.error('Login error:', error);
@@ -57,18 +60,20 @@ document.addEventListener('alpine:init', () => {
       window.location.href = '/login';
     },
 
-    setAuth(user, token) {
-      this.user = user;
+    setAuth(data, token) {
+      this.user = data.user || { username: data.username || 'user', role: 'user' };
       this.token = token;
-      this.role = user.role;
+      this.role = this.user.role;
       this.isAuthenticated = true;
       localStorage.setItem('auth_token', token);
 
       // Update HTMX headers
-      htmx.ajax = htmx.ajax || {};
-      htmx.ajax.headers = {
-        Authorization: `Bearer ${token}`,
-      };
+      if (typeof htmx !== 'undefined') {
+        htmx.ajax = htmx.ajax || {};
+        htmx.ajax.headers = {
+          Authorization: `Bearer ${token}`,
+        };
+      }
     },
 
     clearAuth() {
@@ -81,11 +86,18 @@ document.addEventListener('alpine:init', () => {
 
     async validateToken() {
       try {
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
         const response = await fetch('/api/auth/me', {
           headers: {
             Authorization: `Bearer ${this.token}`,
           },
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const user = await response.json();

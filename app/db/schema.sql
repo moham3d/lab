@@ -429,6 +429,12 @@ CREATE TRIGGER update_visits_updated_at BEFORE UPDATE ON patient_visits FOR EACH
 -- INITIAL DATA SETUP
 -- ===================================================================
 
+-- Insert initial users
+INSERT INTO users (username, email, full_name, role, password_hash) VALUES
+('admin', 'admin@healthcare.local', 'System Administrator', 'admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/2BE9nD.Se'), -- password: admin
+('nurse1', 'nurse1@healthcare.local', 'Test Nurse', 'nurse', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/2BE9nD.Se'), -- password: password123
+('doctor1', 'doctor1@healthcare.local', 'Test Doctor', 'physician', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/2BE9nD.Se'); -- password: password123
+
 -- Insert form definitions
 INSERT INTO form_definitions (form_code, form_name, form_version, form_description, form_role) VALUES
 ('SH.MR.FRM.05', 'Nursing Screening & Assessment', '1.0', 'Comprehensive nursing assessment and screening form', 'nurse'),
