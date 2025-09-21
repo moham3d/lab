@@ -177,7 +177,7 @@ class PatientVisitResponse(PatientVisitBase):
     status: VisitStatus
     created_at: datetime
     updated_at: datetime
-    created_by: UUID
-    updated_by: Optional[UUID]
+    created_by: int
+    updated_by: Optional[int]
 
     model_config = {"from_attributes": True}

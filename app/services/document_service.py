@@ -98,7 +98,8 @@ class DocumentService:
         document = Document(
             **document_data.model_dump(),
             uploaded_by=user_id,
-            file_hash=file_hash
+            file_hash=file_hash,
+            file_path=str(file_path)  # Add the file path
         )
 
         db.add(document)

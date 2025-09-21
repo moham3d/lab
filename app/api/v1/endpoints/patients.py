@@ -28,6 +28,9 @@ async def create_patient(
         db_patient = await service.create_patient(patient, current_user.id)
         return PatientResponse.model_validate(db_patient)
     except ValueError as e:
+        # Check if it's a duplicate error
+        if "already exists" in str(e):
+            raise HTTPException(status_code=409, detail=str(e))
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -79,6 +82,9 @@ async def update_patient(
             raise HTTPException(status_code=404, detail="Patient not found")
         return PatientResponse.model_validate(db_patient)
     except ValueError as e:
+        # Check if it's a duplicate error
+        if "already exists" in str(e):
+            raise HTTPException(status_code=409, detail=str(e))
         raise HTTPException(status_code=400, detail=str(e))
 
 

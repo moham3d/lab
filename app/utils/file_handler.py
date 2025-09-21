@@ -7,6 +7,7 @@ import mimetypes
 import os
 import secrets
 import shutil
+import time
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -79,7 +80,7 @@ class FileHandler:
 
         # Generate random filename
         random_part = secrets.token_hex(16)
-        timestamp = str(int(os.time.time() * 1000000))
+        timestamp = str(int(time.time() * 1000000))
 
         return f"{timestamp}_{random_part}{ext}"
 

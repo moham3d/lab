@@ -72,7 +72,7 @@ class DocumentResponse(DocumentBase):
     file_size: int
     file_hash: Optional[str]
     is_encrypted: bool
-    uploaded_by: UUID
+    uploaded_by: int
     uploaded_at: datetime
     file_size_mb: float
     is_image: bool
