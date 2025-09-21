@@ -11,31 +11,7 @@ class User(Base):
     # Unique identifier for the user
     user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Username for login, must be unique
-    username = Column(Stri    # Previous imaging history
-    # Whether the patient has had operations
-    has_operations = Column(Boolean, default=False)
-    # Whether the patient has had endoscopy
-    has_endoscopy = Column(Boolean, default=False)
-    # Whether the patient has had biopsies
-    has_biopsies = Column(Boolean, default=False)
-    # Whether the patient has had Tc-DTPA kidney scan
-    has_tc_dtpa_kidney_scan = Column(Boolean, default=False)
-    # Whether the patient has had Tc-MDP bone scan
-    has_tc_mdp_bone_scan = Column(Boolean, default=False)
-    # Whether the patient has had MRI
-    has_mri = Column(Boolean, default=False)
-    # Whether the patient has had mammography
-    has_mammography = Column(Boolean, default=False)
-    # Whether the patient has had CT
-    has_ct = Column(Boolean, default=False)
-    # Whether the patient has had X-ray
-    has_xray = Column(Boolean, default=False)
-    # Whether the patient has had ultrasound
-    has_ultrasound = Column(Boolean, default=False)
-    # Whether the patient has had other imaging
-    has_other_imaging = Column(Boolean, default=False)
-    # Description of other imaging
-    other_imaging_desc = Column(Text)e=True, nullable=False)
+    username = Column(String(50), unique=True, nullable=False)
     # Email address, must be unique
     email = Column(String(255), unique=True, nullable=False)
     # Full name of the user
@@ -496,17 +472,29 @@ class RadiologyAssessment(Base):
     other_treatments = Column(Text)
     
     # Previous imaging history
+    # Whether the patient has had operations
     has_operations = Column(Boolean, default=False)
+    # Whether the patient has had endoscopy
     has_endoscopy = Column(Boolean, default=False)
+    # Whether the patient has had biopsies
     has_biopsies = Column(Boolean, default=False)
-    has_tc_mdp_bone_scan = Column(Boolean, default=False)
+    # Whether the patient has had Tc-DTPA kidney scan
     has_tc_dtpa_kidney_scan = Column(Boolean, default=False)
+    # Whether the patient has had Tc-MDP bone scan
+    has_tc_mdp_bone_scan = Column(Boolean, default=False)
+    # Whether the patient has had MRI
     has_mri = Column(Boolean, default=False)
+    # Whether the patient has had mammography
     has_mammography = Column(Boolean, default=False)
+    # Whether the patient has had CT
     has_ct = Column(Boolean, default=False)
+    # Whether the patient has had X-ray
     has_xray = Column(Boolean, default=False)
+    # Whether the patient has had ultrasound
     has_ultrasound = Column(Boolean, default=False)
+    # Whether the patient has had other imaging
     has_other_imaging = Column(Boolean, default=False)
+    # Description of other imaging
     other_imaging_desc = Column(Text)
     
     # General sheet additional fields
