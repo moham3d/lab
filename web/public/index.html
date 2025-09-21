@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Patient Management System</title>
+    <link href="/src/styles/main.css" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
+    <script defer src="/src/js/main.js"></script>
+</head>
+<body class="h-full bg-gray-50" x-data="app" x-init="init()">
+    <!-- Loading Screen -->
+    <div x-show="loading" class="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading Healthcare Portal...</p>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div x-show="!loading" class="h-full">
+        <!-- Content will be loaded here via HTMX -->
+        <div id="main-content" hx-get="/login.html" hx-trigger="load" hx-target="#main-content">
+            <!-- Initial content loaded here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                loading: true,
+
+                async init() {
+                    // Initialize authentication
+                    await Alpine.store('auth').init();
+
+                    // Check if user is authenticated
+                    if (Alpine.store('auth').isAuthenticated) {
+                        // Load dashboard
+                        this.loadContent('/dashboard.html');
+                    } else {
+                        // Load login page
+                        this.loadContent('/login.html');
+                    }
+
+                    this.loading = false;
+                },
+
+                loadContent(url) {
+                    htmx.ajax('GET', url, {
+                        target: '#main-content',
+                        swap: 'innerHTML',
+                    });
+                },
+            }));
+        });
+
+        // Handle navigation events
+        document.addEventListener('htmx:afterSwap', function(evt) {
+            // Update page title if needed
+            const titleElement = evt.detail.target.querySelector('title');
+            if (titleElement) {
+                document.title = titleElement.textContent;
+            }
+        });
+
+        // Handle authentication state changes
+        document.addEventListener('auth:login', function() {
+            // Reload the app to show dashboard
+            window.location.reload();
+        });
+
+        document.addEventListener('auth:logout', function() {
+            // Reload the app to show login
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
