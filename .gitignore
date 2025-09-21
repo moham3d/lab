@@ -5,3 +5,4 @@ app/core/__pycache__/*
 app/db/__pycache__/*
 app/schemas/__pycache__/*
 app/api/__pycache__/*
+web/node_modules/*
