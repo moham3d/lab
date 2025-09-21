@@ -1,440 +1,268 @@
-# Healthcare Frontend Implementation Tasks
+# Patient Visit Management System Frontend - Tasks
 
 ## Overview
-This document outlines the detailed tasks for implementing the healthcare patient management frontend using HTMX, Alpine.js, and Tailwind CSS. Tasks are organized by phase with dependencies, estimates, and acceptance criteria.
+Implementation tasks for the healthcare patient management frontend using HTMX, Alpine.js, and Tailwind CSS. Generated from design artifacts in docs/ directory.
 
-## Phase 1: Project Setup & Core Infrastructure (Week 1, 40 hours)
+**Tech Stack:** HTMX, Alpine.js, Tailwind CSS, Express.js, Jest
+**Entities:** users, patients, visits, assessments, forms, form_fields
+**APIs:** Auth (login/logout/me), Patients CRUD, Visits CRUD, Forms CRUD, Reports
 
-### 1.1 Project Initialization (8 hours)
-**Objective:** Set up development environment and project structure
+## Setup Tasks
 
-**Subtasks:**
-- Configure package.json with HTMX, Alpine.js, Tailwind CSS dependencies
-- Set up build system with Vite or similar for development
+**T001** [Setup] Initialize project structure and dependencies
+- Create package.json with HTMX, Alpine.js, Tailwind CSS
+- Set up Vite build system and development server
+- Configure ESLint, Prettier, and pre-commit hooks
+- Initialize Jest testing framework
+- File: web/package.json, web/vite.config.js, web/jest.config.js
 
-**Acceptance Criteria:**
-- `npm install` works without errors
-- Development server starts successfully
-- Code formatting and linting functional
-- Git hooks prevent commits with issues
+**T002** [Setup] Configure development environment
+- Set up Express server with API proxy to backend
+- Configure environment variables for dev/staging/prod
+- Set up hot reload and asset optimization
+- Configure browser testing environment
+- File: web/server.js, web/.env files
 
-**Dependencies:** None
+## Test Tasks [P]
 
-### 1.2 Development Environment (8 hours)
-**Objective:** Configure local development and API integration
+**T003** [Test] Create authentication contract tests
+- Test login endpoint with valid/invalid credentials
+- Test JWT token storage and validation
+- Test logout and token cleanup
+- Test /me endpoint for user info
+- File: web/tests/auth.test.js
 
-**Subtasks:**
-- Set up hot reload development server
-- Configure API proxy for backend integration
-- Set up environment variables for different stages
-- Configure testing framework (Jest + Testing Library)
-- Set up browser testing environment
+**T004** [Test] Create patient management contract tests
+- Test patient CRUD operations (create, read, update, delete)
+- Test patient search with filters and pagination
+- Test patient validation (SSN, phone, dates)
+- Test bulk import/export functionality
+- File: web/tests/patients.test.js
 
-**Acceptance Criteria:**
-- `npm run dev` starts server on localhost:3000
-- API calls proxy to backend correctly
-- Environment switching works (dev/staging/prod)
-- Basic test runner executes
+**T005** [Test] Create visit management contract tests
+- Test visit CRUD operations linked to patients
+- Test visit status tracking and assignment
+- Test visit timeline and notes functionality
+- File: web/tests/visits.test.js
 
-**Dependencies:** Backend API running
+**T006** [Test] Create forms contract tests
+- Test nursing assessment form submission and validation
+- Test radiology assessment form with file uploads
+- Test form auto-save and progress tracking
+- File: web/tests/forms.test.js
 
-### 1.3 Project Structure (12 hours)
-**Objective:** Create scalable component architecture
+**T007** [Test] Create reports contract tests
+- Test dashboard data loading for different roles
+- Test report generation and export (PDF/Excel)
+- Test real-time updates via HTMX
+- File: web/tests/reports.test.js
 
-**Subtasks:**
-- Design component hierarchy (pages/layouts/components)
-- Implement base HTML templates with HTMX integration
-- Create reusable component library structure
-- Set up asset management (CSS, images, fonts)
-- Configure routing system with HTMX navigation
+**T008** [Test] Create integration test scenarios
+- Test complete patient registration workflow
+- Test visit creation and assessment completion
+- Test role-based access and navigation
+- File: web/tests/integration.test.js
 
-**Acceptance Criteria:**
-- Clear folder structure documented
-- Base templates render correctly
-- Component import/export system functional
-- Asset loading optimized
+## Core Implementation Tasks
 
-**Dependencies:** Task 1.1
-
-### 1.4 Design System (12 hours)
-**Objective:** Establish consistent UI/UX foundation
-
-**Subtasks:**
-- Define Tailwind CSS design tokens (colors, typography, spacing)
-- Create base component library (buttons, forms, cards, modals)
-- Implement responsive grid system
-- Build accessibility utilities and patterns
-- Create loading states and error components
-
-**Acceptance Criteria:**
-- Design system documentation complete
-- All base components functional and accessible
-- Responsive design works on tablet/desktop
-- Accessibility utilities integrated
-
-**Dependencies:** Task 1.3
-
-## Phase 2: Authentication & Base Layout (Week 2, 40 hours)
-
-### 2.1 Authentication System (16 hours)
-**Objective:** Implement secure user authentication
-
-**Subtasks:**
+**T009** [Core] Implement authentication system
 - Build login form with validation and error handling
-- Implement JWT token storage and session management
-- Create logout functionality with token cleanup
-- Add token refresh mechanism for long sessions
-- Implement role-based UI rendering logic
+- Implement JWT token management and refresh
+- Create logout functionality with session cleanup
+- Add role-based UI rendering logic
+- File: web/src/pages/login.html, web/src/js/auth.js
 
-**Acceptance Criteria:**
-- Login form submits to correct API endpoint
-- JWT token stored securely in localStorage
-- Invalid credentials show appropriate errors
-- Logout clears all session data
-- Role-based content shows/hides correctly
+**T010** [Core] Create base layout and navigation
+- Design responsive layout with header/sidebar/content
+- Implement role-based navigation menus
+- Add breadcrumb navigation and mobile drawer
+- Create reusable layout components
+- File: web/src/layouts/main.html, web/src/js/navigation.js
 
-**Dependencies:** Phase 1 complete, Backend auth API
+**T011** [Core] Build design system components
+- Define Tailwind design tokens (colors, typography, spacing)
+- Create base component library (buttons, forms, cards, modals)
+- Implement responsive grid and accessibility utilities
+- Build loading states and error components
+- File: web/src/components/ui/, web/src/styles/main.css
 
-### 2.2 Role-Based Navigation (8 hours)
-**Objective:** Create dynamic navigation system
+**T012** [Core] Implement patient search interface
+- Create real-time search with debouncing
+- Build advanced filters (date range, department, status)
+- Implement pagination and sorting
+- Add recent patients quick access
+- File: web/src/pages/patients.html, web/src/js/patient-search.js
 
-**Subtasks:**
-- Design navigation structure for each role (nurse/physician/admin)
-- Implement dynamic menu generation based on user role
-- Add breadcrumb navigation for complex forms
-- Create mobile-responsive navigation drawer
-- Implement active state indicators
-
-**Acceptance Criteria:**
-- Navigation renders correctly for each role
-- Mobile navigation works on tablets
-- Breadcrumbs show current location
-- Active menu items highlighted
-- Navigation accessible via keyboard
-
-**Dependencies:** Task 2.1
-
-### 2.3 Base Layout Components (10 hours)
-**Objective:** Build reusable layout system
-
-**Subtasks:**
-- Create main layout with header, sidebar, content areas
-- Implement toast notification system for user feedback
-- Build loading indicators for HTMX requests
-- Add print-friendly CSS utilities
-- Create error boundary components
-
-**Acceptance Criteria:**
-- Layout renders correctly on all screen sizes
-- Toast notifications show success/error messages
-- Loading indicators appear during requests
-- Print styles work for forms
-- Error boundaries catch and display errors
-
-**Dependencies:** Task 2.2
-
-### 2.4 Internationalization (6 hours)
-**Objective:** Add Arabic/English language support
-
-**Subtasks:**
-- Set up language switching mechanism
-- Implement RTL/LTR layout support for Arabic
-- Create translation system for UI text
-- Add Arabic font selection and sizing
-- Test language switching functionality
-
-**Acceptance Criteria:**
-- Language toggle switches UI language
-- Arabic text displays correctly with RTL layout
-- Form labels and messages translate
-- Language preference persists
-
-**Dependencies:** Task 2.3
-
-## Phase 3: Patient Management (Weeks 3-4, 80 hours)
-
-### 3.1 Patient Search Interface (20 hours)
-**Objective:** Build efficient patient search and discovery
-
-**Subtasks:**
-- Implement real-time search with debouncing (300ms delay)
-- Create advanced filters (date range, department, status)
-- Build search result pagination and sorting
-- Add recent patients quick access list
-- Implement search result highlighting
-
-**Acceptance Criteria:**
-- Search responds within 1 second
-- Filters work correctly with API
-- Pagination loads additional results
-- Recent patients show on dashboard
-- Search accessible via keyboard
-
-**Dependencies:** Phase 2 complete, Patient API
-
-### 3.2 Patient CRUD Operations (25 hours)
-**Objective:** Complete patient data management
-
-**Subtasks:**
-- Build patient registration form with validation
-- Implement patient profile view with edit capabilities
-- Create patient merge functionality for duplicates
+**T013** [Core] Build patient CRUD operations
+- Create patient registration form with validation
+- Implement patient profile view and editing
 - Add emergency contact management
-- Implement patient history timeline
+- Build patient history timeline
+- File: web/src/pages/patient-detail.html, web/src/js/patient-crud.js
 
-**Acceptance Criteria:**
-- New patient registration works with validation
-- Patient profiles display all information
-- Edit functionality updates correctly
-- Emergency contacts manageable
-- Patient history shows chronologically
+**T014** [Core] Implement visit management
+- Build new visit creation linked to patients
+- Create visit status tracking interface
+- Implement provider assignment functionality
+- Add visit notes and scheduling
+- File: web/src/pages/visits.html, web/src/js/visit-management.js
 
-**Dependencies:** Task 3.1
-
-### 3.3 Visit Management (20 hours)
-**Objective:** Implement visit tracking system
-
-**Subtasks:**
-- Create new visit form linked to patients
-- Build visit status tracking (open/in-progress/completed)
-- Implement visit assignment to healthcare providers
-- Add visit notes and follow-up scheduling
-- Create visit timeline visualization
-
-**Acceptance Criteria:**
-- Visits create correctly linked to patients
-- Status updates work with API
-- Provider assignment functional
-- Notes save and display
-- Timeline shows visit progression
-
-**Dependencies:** Task 3.2
-
-### 3.4 Data Validation & Bulk Operations (15 hours)
-**Objective:** Add data integrity and bulk management
-
-**Subtasks:**
-- Implement SSN validation (Egyptian 14-digit format)
-- Add phone number validation and formatting
-- Create bulk patient import from Excel
-- Build data export functionality (CSV/PDF)
-- Add duplicate patient detection
-
-**Acceptance Criteria:**
-- SSN validation prevents invalid entries
-- Phone numbers format correctly
-- Excel import processes correctly
-- Export generates valid files
-- Duplicates flagged for review
-
-**Dependencies:** Task 3.3
-
-## Phase 4: Forms Development (Weeks 5-6, 80 hours)
-
-### 4.1 Nursing Assessment Form (40 hours)
-**Objective:** Build comprehensive nursing assessment
-
-**Subtasks:**
-- Create multi-section tabbed interface
-- Implement auto-save with 2-second debouncing
-- Build real-time validation with error messages
-- Add progress indicator and completion tracking
+**T015** [Core] Create nursing assessment form
+- Build multi-section tabbed interface
+- Implement auto-save with debouncing
+- Add real-time validation and progress tracking
 - Integrate vital signs input with medical ranges
-- Implement conditional fields for assessments
+- File: web/src/pages/nursing-form.html, web/src/js/nursing-form.js
 
-**Acceptance Criteria:**
-- All form sections accessible via tabs
-- Auto-save works without data loss
-- Validation shows clear error messages
-- Progress bar updates correctly
-- Medical ranges enforced
-- Conditional fields show/hide appropriately
-
-**Dependencies:** Phase 3 complete, Forms API
-
-### 4.2 Radiology Assessment Form (40 hours)
-**Objective:** Build comprehensive radiology assessment
-
-**Subtasks:**
-- Create professional medical interface
-- Implement conditional field display logic
-- Build rich text editor for findings and impressions
-- Add digital signature capture functionality
+**T016** [Core] Create radiology assessment form
+- Build professional medical interface
+- Implement conditional field logic
+- Add rich text editor for findings
 - Integrate file upload for medical images
-- Create previous study comparison viewer
+- File: web/src/pages/radiology-form.html, web/src/js/radiology-form.js
 
-**Acceptance Criteria:**
-- Interface meets medical professional standards
-- Conditional logic works for all field types
-- Rich text editor functional for reports
-- Digital signatures capture and store
-- File uploads work with validation
-- Study comparison displays correctly
+**T017** [Core] Build role-based dashboards
+- Create nurse dashboard (visits, pending forms)
+- Build physician dashboard (assigned visits, reviews)
+- Implement admin dashboard (statistics, user activity)
+- Add real-time updates and quick actions
+- File: web/src/pages/dashboard.html, web/src/js/dashboard.js
 
-**Dependencies:** Task 4.1
-
-## Phase 5: Reports & Dashboards (Week 7, 40 hours)
-
-### 5.1 Role-Based Dashboards (20 hours)
-**Objective:** Create personalized dashboard experiences
-
-**Subtasks:**
-- Build nurse dashboard (open visits, pending forms)
-- Create physician dashboard (assigned visits, pending reviews)
-- Implement admin dashboard (system statistics, user activity)
-- Add real-time data updates and quick actions
-- Create dashboard customization options
-
-**Acceptance Criteria:**
-- Each role sees relevant dashboard
-- Real-time updates work via HTMX
-- Quick actions functional
-- Statistics accurate and current
-- Customization saves user preferences
-
-**Dependencies:** Phase 4 complete, Reports API
-
-### 5.2 Report Generation (20 hours)
-**Objective:** Implement comprehensive reporting system
-
-**Subtasks:**
-- Create daily visit reports with date filtering
-- Build patient history reports with timeline
-- Implement form completion status reports
+**T018** [Core] Implement report generation
+- Create daily visit reports with filtering
+- Build patient history reports
 - Add department activity reports with charts
-- Create PDF export functionality
-- Build Excel export for data analysis
+- Implement PDF and Excel export
+- File: web/src/pages/reports.html, web/src/js/reports.js
 
-**Acceptance Criteria:**
-- All report types generate correctly
-- Date filtering works accurately
-- PDF exports are print-ready
-- Excel exports include all data
-- Charts display correctly in reports
+## Integration Tasks
 
-**Dependencies:** Task 5.1
+**T019** [Integration] Set up HTMX-Alpine.js integration
+- Configure HTMX with Alpine.js state management
+- Implement HTMX request/response handling
+- Set up Alpine stores for global state
+- Integrate loading indicators and error handling
+- File: web/src/js/main.js, web/src/js/stores/
 
-## Phase 6: Admin Interface & Testing (Week 8, 40 hours)
+**T020** [Integration] Implement API client layer
+- Create centralized API client with error handling
+- Implement request/response interceptors
+- Add retry logic and timeout handling
+- Configure API base URLs and authentication headers
+- File: web/src/js/api-client.js
 
-### 6.1 Admin Data Management (20 hours)
-**Objective:** Build comprehensive admin tools
+**T021** [Integration] Add internationalization support
+- Set up language switching mechanism
+- Implement RTL/LTR layout for Arabic
+- Create translation system for UI text
+- Add Arabic font configuration
+- File: web/src/js/i18n.js, web/src/locales/
 
-**Subtasks:**
-- Create user management interface (CRUD operations)
-- Build data tables with sorting, filtering, pagination
-- Implement bulk operations for efficiency
-- Add audit trail viewing and export
-- Create system configuration interface
+**T022** [Integration] Implement file upload handling
+- Set up file upload for medical images
+- Add file validation and progress tracking
+- Implement secure file storage integration
+- Create file preview and management
+- File: web/src/js/file-upload.js
 
-**Acceptance Criteria:**
-- All CRUD operations functional
-- Data tables performant with large datasets
-- Bulk operations work correctly
-- Audit trails show all changes
-- Configuration updates apply immediately
+**T023** [Integration] Add data validation utilities
+- Implement SSN validation (Egyptian 14-digit)
+- Add phone number formatting and validation
+- Create medical data range validation
+- Build form validation helpers
+- File: web/src/js/validation.js
 
-**Dependencies:** Phase 5 complete, Admin API
+## Polish Tasks [P]
 
-### 6.2 Testing & Quality Assurance (20 hours)
-**Objective:** Ensure production-ready quality
+**T024** [Polish] Add comprehensive unit tests
+- Write unit tests for all JavaScript modules
+- Test component rendering and interactions
+- Add utility function tests
+- Achieve >80% code coverage
+- File: web/tests/unit/
 
-**Subtasks:**
-- Write comprehensive unit tests (80%+ coverage)
-- Create integration tests with API mocking
-- Perform accessibility testing (WCAG 2.1 AA)
-- Conduct cross-browser compatibility testing
-- Execute performance testing and optimization
-- Complete user acceptance testing
+**T025** [Polish] Implement accessibility features
+- Add ARIA labels and roles to all components
+- Implement keyboard navigation support
+- Ensure WCAG 2.1 AA compliance
+- Add screen reader support
+- File: web/src/components/ (accessibility updates)
 
-**Acceptance Criteria:**
-- Unit test coverage > 80%
-- Integration tests pass with API
-- Accessibility score > 95
-- All target browsers supported
-- Performance < 2s load times
-- UAT feedback incorporated
+**T026** [Polish] Optimize performance
+- Implement lazy loading for components
+- Optimize bundle size and loading times
+- Add caching strategies for API calls
+- Implement virtual scrolling for large lists
+- File: web/vite.config.js, web/src/js/performance.js
 
-**Dependencies:** Task 6.1
+**T027** [Polish] Add error handling and monitoring
+- Implement global error boundaries
+- Add user-friendly error messages
+- Set up error logging and reporting
+- Create offline functionality
+- File: web/src/js/error-handling.js
 
-## Task Dependencies Summary
+**T028** [Polish] Create documentation
+- Write component usage documentation
+- Create API integration guide
+- Add deployment and maintenance docs
+- Document customization options
+- File: web/docs/, web/README.md
+
+**T029** [Polish] Conduct cross-browser testing
+- Test on Chrome, Firefox, Safari, Edge
+- Verify mobile browser compatibility
+- Test responsive design on various devices
+- Fix browser-specific issues
+- File: web/tests/browser-compatibility.js
+
+**T030** [Polish] Perform security audit
+- Review client-side security practices
+- Validate secure token storage
+- Check for XSS vulnerabilities
+- Implement CSP headers
+- File: web/server.js (security headers)
+
+## Task Dependencies
 
 ```
-Phase 1 (Setup)
-├── 1.1 Project Init
-├── 1.2 Dev Environment
-├── 1.3 Project Structure (depends on 1.1)
-└── 1.4 Design System (depends on 1.3)
-
-Phase 2 (Auth & Layout)
-├── 2.1 Authentication (depends on Phase 1)
-├── 2.2 Navigation (depends on 2.1)
-├── 2.3 Base Layout (depends on 2.2)
-└── 2.4 i18n (depends on 2.3)
-
-Phase 3 (Patient Management)
-├── 3.1 Search Interface (depends on Phase 2)
-├── 3.2 CRUD Operations (depends on 3.1)
-├── 3.3 Visit Management (depends on 3.2)
-└── 3.4 Validation & Bulk (depends on 3.3)
-
-Phase 4 (Forms)
-├── 4.1 Nursing Form (depends on Phase 3)
-└── 4.2 Radiology Form (depends on 4.1)
-
-Phase 5 (Reports)
-├── 5.1 Dashboards (depends on Phase 4)
-└── 5.2 Report Generation (depends on 5.1)
-
-Phase 6 (Admin & Testing)
-├── 6.1 Admin Interface (depends on Phase 5)
-└── 6.2 Testing (depends on 6.1)
+Setup Tasks (T001-T002)
+├── Test Tasks [P] (T003-T008) - can run in parallel after setup
+├── Core Tasks (T009-T018) - depend on tests (TDD approach)
+│   ├── T009 (Auth) → T010 (Layout) → T011 (Design System)
+│   ├── T012 (Patient Search) → T013 (Patient CRUD) → T014 (Visit Mgmt)
+│   ├── T015 (Nursing Form) → T016 (Radiology Form)
+│   └── T017 (Dashboards) → T018 (Reports)
+├── Integration Tasks (T019-T023) - depend on core implementation
+└── Polish Tasks [P] (T024-T030) - can run in parallel after integration
 ```
 
-## Resource Allocation
+## Parallel Execution Examples
 
-### Team Composition
-- **Frontend Developer**: 8 weeks full-time (320 hours)
-- **UI/UX Designer**: 2 weeks part-time (16 hours)
-- **QA Tester**: 2 weeks part-time (16 hours)
-- **Medical Consultant**: 1 week consulting (8 hours)
+After completing T001-T002 (setup), you can run test tasks in parallel:
 
-### Tools & Infrastructure
-- **Development**: VS Code, Git, npm
-- **Testing**: Jest, Testing Library, Cypress
-- **Design**: Figma, Adobe XD
-- **Deployment**: Netlify/Vercel, GitHub Actions
+```
+# Run contract tests in parallel
+T003 & T004 & T005 & T006 & T007 & T008
+```
 
-## Risk Mitigation
+After core implementation, run polish tasks in parallel:
 
-### Technical Risks
-- **API Integration Issues**: Start with API documentation review, create comprehensive integration tests
-- **Performance with Large Forms**: Implement progressive loading, monitor performance metrics
-- **Accessibility Compliance**: Use automated tools, conduct regular accessibility audits
+```
+# Run polish tasks in parallel
+T024 & T025 & T026 & T027 & T028 & T029 & T030
+```
 
-### Process Risks
-- **Timeline Pressure**: Break work into small, testable increments with regular reviews
-- **Medical Requirements Changes**: Maintain close communication with healthcare stakeholders
-- **Browser Compatibility**: Test early and maintain browser support matrix
+## Success Criteria
 
-## Success Metrics
+- All tests pass with >80% coverage
+- Application loads in <2 seconds
+- WCAG 2.1 AA accessibility compliance
+- Cross-browser compatibility (Chrome, Firefox, Safari, Edge)
+- HIPAA-compliant data handling
+- Responsive design works on mobile/tablet/desktop
 
-### Quality Gates
-- **Code Quality**: ESLint passes, test coverage > 80%
-- **Performance**: Lighthouse score > 90, load time < 2s
-- **Accessibility**: WCAG 2.1 AA compliance verified
-- **Security**: No critical vulnerabilities, HIPAA compliance
-
-### Delivery Milestones
-- **M1 (End Week 1)**: Development environment ready
-- **M2 (End Week 2)**: Authentication and navigation working
-- **M3 (End Week 4)**: Patient management complete
-- **M4 (End Week 6)**: Forms fully functional
-- **M5 (End Week 7)**: Reports and dashboards complete
-- **M6 (End Week 8)**: Admin interface and testing finished
-
----
-
-**Total Estimated Hours:** 320 hours
-**Duration:** 8 weeks
-**Last Updated:** September 21, 2025</content>
+**Total Tasks:** 30
+**Estimated Duration:** 8 weeks
+**Generated:** Based on docs/project_plan.md, docs/database.sql, docs/frontend_guide.md, form specifications</content>
 <parameter name="filePath">/home/mohamed/lab/.specify/specs/tasks.md
