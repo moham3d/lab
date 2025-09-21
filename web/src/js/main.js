@@ -4,7 +4,7 @@
  */
 
 // Alpine.js stores for global state management
-document.addEventListener('alpine:init', () => {
+if (typeof Alpine !== 'undefined') {
   // Authentication store
   Alpine.store('auth', {
     user: null,
@@ -86,18 +86,11 @@ document.addEventListener('alpine:init', () => {
 
     async validateToken() {
       try {
-        // Add timeout to prevent hanging
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
         const response = await fetch('/api/auth/me', {
           headers: {
             Authorization: `Bearer ${this.token}`,
           },
-          signal: controller.signal,
         });
-
-        clearTimeout(timeoutId);
 
         if (response.ok) {
           const user = await response.json();
@@ -260,7 +253,7 @@ document.addEventListener('alpine:init', () => {
       }
     },
   });
-});
+}
 
 // Utility functions
 window.HealthcareUtils = {

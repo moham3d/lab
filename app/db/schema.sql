@@ -431,7 +431,7 @@ CREATE TRIGGER update_visits_updated_at BEFORE UPDATE ON patient_visits FOR EACH
 
 -- Insert initial users
 INSERT INTO users (username, email, full_name, role, password_hash) VALUES
-('admin', 'admin@healthcare.local', 'System Administrator', 'admin', '$2b$12$9ZC3s9j60.yf7jv7/nc8wOPPTqELayBejnowASyXtTnkL7Cv3BBpO'), -- password: admin
+('admin', 'admin@healthcare.local', 'System Administrator', 'admin', '$2b$12$9ZC3s9j60.yf7jv7/nc8wOPPTqELayBejnowASyXtTnkL7Cv3BBpO'); -- password: admin
 
 -- Insert form definitions
 INSERT INTO form_definitions (form_code, form_name, form_version, form_description, form_role) VALUES

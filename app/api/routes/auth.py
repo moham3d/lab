@@ -5,6 +5,7 @@ from app.db.init_db import get_db
 from app.models import User
 from app.schemas.user_schemas import UserCreate, LoginRequest, Token
 from app.core.security import verify_password, get_password_hash, create_access_token
+from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -51,3 +52,15 @@ async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
     
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current authenticated user information."""
+    return {
+        "user_id": str(current_user.user_id),
+        "username": current_user.username,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "role": current_user.role,
+        "is_active": current_user.is_active
+    }
