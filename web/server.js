@@ -5,8 +5,9 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from public directory
+// Serve static files from public and src directories
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/src', express.static(path.join(__dirname, 'src')));
 
 // Proxy API requests to the backend
 app.use('/api', createProxyMiddleware({
@@ -26,7 +27,15 @@ app.use('/api', createProxyMiddleware({
 }));
 
 // Catch all handler: send back index.html for client-side routing
-app.get('*', (req, res) => {
+// This should only handle routes that don't match static files
+app.get('*', (req, res, next) => {
+    // If the request has an extension or is for /src, let static middleware handle it
+    if (req.path.includes('.') || req.path.startsWith('/src')) {
+        return next();
+    }
+
+    // For SPA routes, always serve the main app (index.html)
+    // The client-side router will handle authentication and page loading
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Healthcare Patient Management System</title>
-    <link href="/src/styles/main.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/styles/main.css" rel="stylesheet">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
     <script defer src="/src/js/main.js"></script>
@@ -20,9 +21,11 @@
 
     <!-- Main Content Container -->
     <div x-show="!loading" class="h-full">
-        <!-- Content will be loaded here via HTMX -->
-        <div id="main-content" hx-get="/login.html" hx-trigger="load" hx-target="#main-content">
-            <!-- Initial content loaded here -->
+        <!-- Content will be loaded here via Alpine.js -->
+        <div id="main-content" class="text-center py-8">
+            <!-- Initial loading content -->
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Initializing application...</p>
         </div>
     </div>
 
@@ -32,26 +35,107 @@
                 loading: true,
 
                 async init() {
-                    // Initialize authentication
-                    await Alpine.store('auth').init();
+                    try {
+                        console.log('Initializing app...');
 
-                    // Check if user is authenticated
-                    if (Alpine.store('auth').isAuthenticated) {
-                        // Load dashboard
-                        this.loadContent('/dashboard.html');
-                    } else {
-                        // Load login page
+                        // Initialize authentication (this will validate token if present)
+                        await Alpine.store('auth').init();
+                        console.log('Auth initialized, isAuthenticated:', Alpine.store('auth').isAuthenticated);
+
+                        // Handle route-based navigation
+                        this.handleRoute();
+                    } catch (error) {
+                        console.error('Error during initialization:', error);
+                        // On error, show login page
                         this.loadContent('/login.html');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                handleRoute() {
+                    const path = window.location.pathname;
+                    console.log('Current path:', path);
+
+                    // Public routes that don't require authentication
+                    const publicRoutes = ['/', '/login', '/login.html'];
+                    
+                    if (publicRoutes.includes(path)) {
+                        if (Alpine.store('auth').isAuthenticated) {
+                            // If already authenticated and on login page, redirect to dashboard
+                            this.loadContent('/dashboard.html');
+                            window.history.pushState({}, '', '/dashboard');
+                        } else {
+                            // Load login page
+                            this.loadContent('/login.html');
+                        }
+                        return;
                     }
 
-                    this.loading = false;
+                    // Protected routes require authentication
+                    if (!Alpine.store('auth').isAuthenticated) {
+                        console.log('Access denied, redirecting to login');
+                        this.loadContent('/login.html');
+                        window.history.pushState({}, '', '/login');
+                        return;
+                    }
+
+                    // Route authenticated users to appropriate pages
+                    switch (path) {
+                        case '/dashboard':
+                        case '/dashboard.html':
+                            this.loadContent('/dashboard.html');
+                            break;
+                        case '/patients':
+                        case '/patients/new':
+                            this.loadContent('/patients.html');
+                            break;
+                        default:
+                            // Default to dashboard for authenticated users
+                            this.loadContent('/dashboard.html');
+                            window.history.pushState({}, '', '/dashboard');
+                            break;
+                    }
                 },
 
                 loadContent(url) {
-                    htmx.ajax('GET', url, {
-                        target: '#main-content',
-                        swap: 'innerHTML',
-                    });
+                    console.log('Loading content from:', url);
+                    fetch(url)
+                        .then(response => {
+                            console.log('Response status:', response.status, 'for URL:', url);
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.text();
+                        })
+                        .then(html => {
+                            console.log('Content loaded successfully, length:', html.length, 'for URL:', url);
+                            const mainContent = document.getElementById('main-content');
+                            mainContent.innerHTML = html;
+                            
+                            // Force Alpine.js to reinitialize the content
+                            setTimeout(() => {
+                                Alpine.initTree(mainContent);
+                                console.log('Alpine.js reinitialized for:', url);
+                            }, 100);
+                        })
+                        .catch(error => {
+                            console.error('Failed to load content for', url, ':', error);
+                            // Fallback: show error message
+                            document.getElementById('main-content').innerHTML = `
+                                <div class="text-center py-8">
+                                    <h2 class="text-xl font-semibold text-gray-900 mb-2">Loading Error</h2>
+                                    <p class="text-gray-600">Failed to load page content. Please refresh the page.</p>
+                                    <button onclick="window.location.reload()" class="mt-4 btn-primary">Refresh Page</button>
+                                </div>
+                            `;
+                        });
+                },
+
+                navigate(path) {
+                    console.log('Navigating to:', path);
+                    window.history.pushState({}, '', path);
+                    this.handleRoute();
                 },
             }));
         });
@@ -65,15 +149,29 @@
             }
         });
 
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(event) {
+            const appData = Alpine.$data(document.querySelector('[x-data=\"app\"]'));
+            if (appData && appData.handleRoute) {
+                appData.handleRoute();
+            }
+        });
+
         // Handle authentication state changes
         document.addEventListener('auth:login', function() {
-            // Reload the app to show dashboard
-            window.location.reload();
+            // Navigate to dashboard after login
+            const appData = Alpine.$data(document.querySelector('[x-data=\"app\"]'));
+            if (appData && appData.navigate) {
+                appData.navigate('/dashboard');
+            }
         });
 
         document.addEventListener('auth:logout', function() {
-            // Reload the app to show login
-            window.location.reload();
+            // Navigate to login after logout
+            const appData = Alpine.$data(document.querySelector('[x-data=\"app\"]'));
+            if (appData && appData.navigate) {
+                appData.navigate('/login');
+            }
         });
     </script>
 </body>

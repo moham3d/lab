@@ -7,9 +7,23 @@ async def execute_schema():
     db_url = settings.database_url.replace('+asyncpg', '')
     conn = await asyncpg.connect(db_url)
     try:
+        # Check if tables already exist
+        result = await conn.fetchval("""
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_schema = 'public'
+                AND table_name = 'patients'
+            );
+        """)
+
+        if result:
+            print("Database tables already exist, skipping schema creation")
+            return
+
         with open("app/db/schema.sql", "r") as f:
             schema_sql = f.read()
         await conn.execute(schema_sql)
+        print("Database tables created successfully")
     finally:
         await conn.close()
 

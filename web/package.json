@@ -4,9 +4,13 @@
   "description": "Healthcare Patient Management System Frontend",
   "main": "index.js",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "npm run build:css:once && node server.js",
+    "dev:watch": "npm run build:css & npm run dev:server",
+    "dev:server": "node server.js",
     "dev:live": "live-server --port=3000 --host=0.0.0.0",
-    "build": "echo 'Static site - no build needed'",
+    "build:css": "tailwindcss -i ./src/styles/main.css -o ./public/styles/main.css --watch",
+    "build:css:once": "tailwindcss -i ./src/styles/main.css -o ./public/styles/main.css",
+    "build": "npm run build:css:once",
     "test": "jest",
     "lint": "eslint src/**/*.js",
     "format": "prettier --write src/**/*.{js,html,css}"
