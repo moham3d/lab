@@ -422,3 +422,95 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 });
+
+// Alpine components registered globally so SPA-injected pages work
+document.addEventListener('alpine:init', () => {
+  // Dashboard component
+  Alpine.data('dashboard', () => ({
+    stats: {
+      totalPatients: 0,
+      todayVisits: 0,
+      pendingAssessments: 0,
+      weekVisits: 0,
+    },
+    recentActivity: [],
+
+    async init() {
+      await this.loadStats();
+      await this.loadRecentActivity();
+    },
+
+    async loadStats() {
+      try {
+        const response = await fetch('/api/dashboard/stats', {
+          headers: {
+            Authorization: `Bearer ${Alpine.store('auth').token}`,
+          },
+        });
+
+        if (response.ok) {
+          this.stats = await response.json();
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard stats:', error);
+      }
+    },
+
+    async loadRecentActivity() {
+      try {
+        const response = await fetch('/api/dashboard/activity', {
+          headers: {
+            Authorization: `Bearer ${Alpine.store('auth').token}`,
+          },
+        });
+
+        if (response.ok) {
+          this.recentActivity = await response.json();
+        }
+      } catch (error) {
+        console.error('Failed to load recent activity:', error);
+      }
+    },
+  }));
+
+  // Patients page component
+  Alpine.data('patientsPage', () => ({
+    patients: [],
+    loading: true,
+    searchQuery: '',
+
+    async init() {
+      await this.loadPatients();
+    },
+
+    async loadPatients() {
+      this.loading = true;
+      try {
+        const response = await fetch('/api/patients', {
+          headers: {
+            Authorization: `Bearer ${Alpine.store('auth').token}`,
+          },
+        });
+
+        if (response.ok) {
+          this.patients = await response.json();
+        } else if (response.status === 401) {
+          Alpine.store('auth').clearAuth();
+          window.location.href = '/login';
+        } else {
+          this.patients = [];
+        }
+      } catch (error) {
+        console.error('Failed to load patients:', error);
+        this.patients = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    debouncedSearch() {
+      // Simple placeholder for search; enhance later
+      console.log('Searching for:', this.searchQuery);
+    },
+  }));
+});

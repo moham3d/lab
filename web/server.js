@@ -28,6 +28,9 @@ app.use('/api', createProxyMiddleware({
 
 // Catch all handler: send back index.html for client-side routing
 // This should only handle routes that don't match static files
+// Serve empty favicon to avoid 404 noise
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.get('*', (req, res, next) => {
     // If the request has an extension or is for /src, let static middleware handle it
     if (req.path.includes('.') || req.path.startsWith('/src')) {

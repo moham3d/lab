@@ -45,7 +45,7 @@
 
                         <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                             <div class="py-1">
-                                <button @click="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
+                                <button @click="$store.auth.logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
                             </div>
                         </div>
                     </div>
@@ -217,11 +217,6 @@
                 debouncedSearch() {
                     // Simple search implementation
                     console.log('Searching for:', this.searchQuery);
-                },
-
-                async logout() {
-                    localStorage.removeItem('auth_token');
-                    window.location.href = '/login';
                 },
             }));
         });
