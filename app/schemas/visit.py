@@ -20,7 +20,6 @@ class VisitStatus(str, Enum):
 class VisitBase(BaseModel):
     """Base visit schema"""
     visit_date: datetime = Field(..., description="Visit date and time")
-    chief_complaint: Optional[str] = Field(None, max_length=1000, description="Chief complaint")
     notes: Optional[str] = Field(None, max_length=2000, description="Additional notes")
 
     @field_validator('visit_date')
@@ -41,7 +40,6 @@ class VisitUpdate(BaseModel):
     """Schema for updating a visit"""
     visit_date: Optional[datetime] = None
     status: Optional[VisitStatus] = None
-    chief_complaint: Optional[str] = Field(None, max_length=1000)
     notes: Optional[str] = Field(None, max_length=2000)
 
     @field_validator('visit_date')
@@ -62,8 +60,7 @@ class VisitResponse(VisitBase):
     status: VisitStatus
     created_at: datetime
     updated_at: datetime
-    created_by: int
-    updated_by: Optional[int]
+    created_by: UUID
 
     model_config = {"from_attributes": True}
 
@@ -75,7 +72,7 @@ class VisitSummary(BaseModel):
     patient_name: str
     visit_date: datetime
     status: VisitStatus
-    chief_complaint: Optional[str]
+    notes: Optional[str]
     created_at: datetime
 
     model_config = {"from_attributes": True}
