@@ -2,6 +2,10 @@
 Authentication schemas for request/response validation
 """
 
+from datetime import datetime
+from typing import Optional
+from uuid import UUID
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -39,7 +43,7 @@ class UserCreate(BaseModel):
 
 class UserResponse(BaseModel):
     """User response model"""
-    user_id: str
+    user_id: UUID
     username: str
     email: EmailStr
     full_name: str

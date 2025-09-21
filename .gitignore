@@ -93,3 +93,5 @@ migration_data/
 # Uploads directory (keep structure but ignore contents)
 uploads/*
 !uploads/.gitkeep
+app/core/__pycache__/__init__.cpython-312.pyc
+app/core/__pycache__/security.cpython-312.pyc
