@@ -9,7 +9,7 @@ This is a FastAPI-based healthcare backend API for managing patient visits, asse
 - **Database**: PostgreSQL with SQLAlchemy 2.0 and asyncpg
 - **Authentication**: JWT with python-jose
 - **Validation**: Pydantic models
-- **Migrations**: Alembic
+- **Migrations**: SQL schema files (init.sql) for database initialization
 - **Testing**: pytest with asyncio
 - **Documentation**: Automatic OpenAPI/Swagger
 - **File Handling**: aiofiles with validation
@@ -43,7 +43,7 @@ This is a FastAPI-based healthcare backend API for managing patient visits, asse
 ## Database Patterns
 - **Models**: SQLAlchemy declarative models with relationships
 - **Sessions**: Async session management with dependency injection
-- **Migrations**: Alembic for schema changes
+- **Migrations**: SQL schema files for database initialization
 - **Constraints**: Database-level constraints for data integrity
 - **Indexes**: Appropriate indexes for query performance
 

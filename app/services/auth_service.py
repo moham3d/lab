@@ -34,7 +34,7 @@ class AuthService:
         if not user:
             return None
 
-        if not verify_password(password, user.hashed_password):
+        if not verify_password(password, user.password_hash):
             return None
 
         return user
@@ -61,7 +61,8 @@ class AuthService:
         user = User(
             username=user_data.username,
             email=user_data.email,
-            hashed_password=hashed_password,
+            full_name=user_data.full_name,
+            password_hash=hashed_password,
             role=user_data.role,
         )
 
@@ -78,9 +79,9 @@ class AuthService:
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
+    async def get_user_by_id(db: AsyncSession, user_id: str) -> Optional[User]:
         """Get user by ID"""
-        result = await db.execute(select(User).where(User.id == user_id))
+        result = await db.execute(select(User).where(User.user_id == user_id))
         return result.scalar_one_or_none()
 
     @staticmethod

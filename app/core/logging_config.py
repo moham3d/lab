@@ -41,62 +41,38 @@ def get_logging_config() -> Dict[str, Any]:
                 "level": "INFO",
                 "formatter": "simple",
                 "stream": sys.stdout
-            },
-            "file": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "INFO",
-                "formatter": "detailed",
-                "filename": log_dir / "app.log",
-                "maxBytes": 10485760,  # 10MB
-                "backupCount": 5
-            },
-            "error_file": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "ERROR",
-                "formatter": "detailed",
-                "filename": log_dir / "error.log",
-                "maxBytes": 10485760,  # 10MB
-                "backupCount": 5
-            },
-            "security_file": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "WARNING",
-                "formatter": "detailed",
-                "filename": log_dir / "security.log",
-                "maxBytes": 10485760,  # 10MB
-                "backupCount": 5
             }
         },
         "loggers": {
             "app": {
                 "level": "INFO",
-                "handlers": ["console", "file"],
+                "handlers": ["console"],
                 "propagate": False
             },
             "app.security": {
                 "level": "WARNING",
-                "handlers": ["console", "security_file"],
+                "handlers": ["console"],
                 "propagate": False
             },
             "app.api": {
                 "level": "INFO",
-                "handlers": ["console", "file"],
+                "handlers": ["console"],
                 "propagate": False
             },
             "sqlalchemy": {
                 "level": "WARNING",
-                "handlers": ["console", "file"],
+                "handlers": ["console"],
                 "propagate": False
             },
             "uvicorn": {
                 "level": "INFO",
-                "handlers": ["console", "file"],
+                "handlers": ["console"],
                 "propagate": False
             }
         },
-        "root": {
+                "root": {
             "level": "INFO",
-            "handlers": ["console", "file", "error_file"]
+            "handlers": ["console"]
         }
     }
 

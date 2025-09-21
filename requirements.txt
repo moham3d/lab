@@ -5,9 +5,10 @@ fastapi==0.115.6
 uvicorn[standard]==0.32.1
 
 # Database - Updated for Python 3.13 compatibility
+greenlet==3.1.1
 sqlalchemy==2.0.36
 asyncpg==0.30.0
-alembic==1.14.0
+# alembic==1.14.0  # Removed - using SQL schema file instead
 
 # Authentication & Security
 pydantic==2.10.3
@@ -20,9 +21,9 @@ email-validator
 # File Handling
 aiofiles==24.1.0
 
-# Background Tasks
-celery==5.4.0
-redis==5.2.0
+# Background Tasks - Removed Celery and Redis for minimal setup
+# celery==5.4.0
+# redis==5.2.0
 
 # System Monitoring
 psutil==6.1.0

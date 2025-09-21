@@ -53,38 +53,39 @@ def get_password_hash(password: str) -> str:
 
 async def create_initial_admin():
     """Create initial admin user if not exists"""
-    from sqlalchemy.ext.asyncio import AsyncSession
-    from sqlalchemy import select
+    from sqlalchemy import text
     from app.database import async_session
-    from app.models.user import User, UserRole
 
     async with async_session() as session:
-        # Check if admin user already exists
+        # Check if admin user already exists using raw SQL
         result = await session.execute(
-            select(User).where(User.username == "admin")
+            text('SELECT user_id, username, email, full_name, role, is_active FROM users WHERE username = :username'),
+            {"username": "admin"}
         )
-        existing_admin = result.scalar_one_or_none()
+        existing_user = result.first()
 
-        if existing_admin:
+        if existing_user:
             print("Admin user already exists")
             return
 
-        # Create admin user
-        admin_user = User(
-            username="admin",
-            email="admin@hospital.com",
-            first_name="System",
-            last_name="Administrator",
-            hashed_password=get_password_hash("admin"),
-            role="admin",  # Use string instead of enum
-            is_active=True
+        # Create admin user using raw SQL
+        await session.execute(
+            text('''
+                INSERT INTO users (username, email, full_name, role, password_hash, is_active)
+                VALUES (:username, :email, :full_name, :role, :password_hash, :is_active)
+            '''),
+            {
+                "username": "admin",
+                "email": "admin@hospital.com",
+                "full_name": "System Administrator",
+                "role": "admin",
+                "password_hash": get_password_hash("admin"),
+                "is_active": True
+            }
         )
-
-        session.add(admin_user)
         await session.commit()
-        await session.refresh(admin_user)
 
-        print(f"Created admin user with ID: {admin_user.id}")
+        print("Created admin user")
         print("Username: admin")
         print("Password: admin")
         print("Email: admin@hospital.com")

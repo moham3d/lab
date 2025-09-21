@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Security
-    SECRET_KEY: str = secrets.token_urlsafe(32)
+    SECRET_KEY: str = "your-fixed-secret-key-for-development-testing-12345"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     ALGORITHM: str = "HS256"
@@ -30,24 +30,24 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "password"
     POSTGRES_DB: str = "patient_visits"
     POSTGRES_PORT: str = "5432"
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: str = "postgresql+asyncpg://mohamed:password@localhost:5432/patient_visits"
 
-    @field_validator("DATABASE_URL", mode="before")
-    @classmethod
-    def assemble_db_connection(cls, v, info):
-        if isinstance(v, str):
-            return v
-        # In Pydantic v2, we need to access the raw field values
-        # The values are available in the model_fields
-        user = getattr(cls, 'POSTGRES_USER', 'postgres')
-        password = getattr(cls, 'POSTGRES_PASSWORD', 'password')
-        server = getattr(cls, 'POSTGRES_SERVER', 'localhost')
-        port = getattr(cls, 'POSTGRES_PORT', '5432')
-        db = getattr(cls, 'POSTGRES_DB', 'patient_visits')
-        return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
+    # @field_validator("DATABASE_URL", mode="before")
+    # @classmethod
+    # def assemble_db_connection(cls, v, info):
+    #     if isinstance(v, str):
+    #         return v
+    #     # In Pydantic v2, we need to access the raw field values
+    #     # The values are available in the model_fields
+    #     user = getattr(cls, 'POSTGRES_USER', 'postgres')
+    #     password = getattr(cls, 'POSTGRES_PASSWORD', 'password')
+    #     server = getattr(cls, 'POSTGRES_SERVER', 'localhost')
+    #     port = getattr(cls, 'POSTGRES_PORT', '5432')
+    #     db = getattr(cls, 'POSTGRES_DB', 'patient_visits')
+    #     return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
 
     # Redis
-    REDIS_URL: str = "redis://localhost:6379"
+    # REDIS_URL: str = "redis://localhost:6379"  # Removed - Redis not used
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = []
@@ -60,8 +60,10 @@ class Settings(BaseSettings):
         return v or [
             "http://localhost:3000",  # React dev server
             "http://localhost:8080",  # Vue dev server
+            "http://localhost:8000",  # FastAPI server
             "https://localhost:3000",
             "https://localhost:8080",
+            "https://localhost:8000",
         ]
 
     # Trusted hosts
@@ -97,8 +99,8 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = None
 
     # Celery
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+    # CELERY_BROKER_URL: str = "redis://localhost:6379/0"  # Removed - Celery not used
+    # CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"  # Removed - Celery not used
 
     model_config = SettingsConfigDict(
         env_file=".env.test" if os.getenv("ENVIRONMENT") == "test" else ".env",

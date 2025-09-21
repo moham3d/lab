@@ -32,17 +32,21 @@ class UserCreate(BaseModel):
     """User creation request (admin only)"""
     username: str
     email: EmailStr
+    full_name: str
     password: str
     role: str = "nurse"
 
 
 class UserResponse(BaseModel):
     """User response model"""
-    id: int
+    user_id: str
     username: str
     email: EmailStr
+    full_name: str
     role: str
     is_active: bool
+    created_at: datetime
+    last_login: Optional[datetime]
 
     model_config = {"from_attributes": True}
 

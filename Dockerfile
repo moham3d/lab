@@ -1,5 +1,5 @@
-# Use Python 3.13 slim image for production
-FROM python:3.13-slim
+# Use Python 3.12 slim image for production
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1

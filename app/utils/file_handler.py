@@ -182,12 +182,23 @@ class FileHandler:
     @classmethod
     def ensure_upload_directory(cls) -> None:
         """Ensure upload directory exists"""
-        upload_dir = Path(settings.UPLOAD_DIR)
-        upload_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            upload_dir = Path(settings.UPLOAD_DIR)
+            upload_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create subdirectories
-        visits_dir = upload_dir / "visits"
-        visits_dir.mkdir(exist_ok=True)
+            # Create subdirectories
+            visits_dir = upload_dir / "visits"
+            visits_dir.mkdir(exist_ok=True)
 
-        temp_dir = upload_dir / "temp"
-        temp_dir.mkdir(exist_ok=True)
+            temp_dir = upload_dir / "temp"
+            temp_dir.mkdir(exist_ok=True)
+        except PermissionError as e:
+            # Log warning but don't fail startup
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Could not create upload directories: {e}. Upload functionality may not work properly.")
+        except Exception as e:
+            # Log other errors but don't fail startup
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Error ensuring upload directory: {e}. Upload functionality may not work properly.")

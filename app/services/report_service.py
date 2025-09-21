@@ -12,7 +12,7 @@ from sqlalchemy import select, func, and_, or_, desc, extract
 from app.models.patient import Patient
 from app.models.visit import PatientVisit
 from app.models.assessment import NursingAssessment, RadiologyAssessment
-from app.models.document import Document
+# from app.models.document import Document  # Temporarily disabled
 from app.models.user import User
 from app.models.audit import AuditLog
 from app.schemas.report import (
@@ -124,12 +124,12 @@ class ReportService:
     ) -> DashboardStats:
         """Get dashboard statistics"""
         # Total patients
-        patients_query = select(func.count(Patient.id))
+        patients_query = select(func.count(Patient.ssn))
         patients_result = await db.execute(patients_query)
         total_patients = patients_result.scalar() or 0
 
         # Active visits (status = 'open')
-        active_visits_query = select(func.count(PatientVisit.id)).where(
+        active_visits_query = select(func.count(PatientVisit.visit_id)).where(
             PatientVisit.status == "open"
         )
         active_result = await db.execute(active_visits_query)
@@ -137,7 +137,7 @@ class ReportService:
 
         # Completed visits today
         today = date.today()
-        completed_today_query = select(func.count(PatientVisit.id)).where(
+        completed_today_query = select(func.count(PatientVisit.visit_id)).where(
             and_(
                 PatientVisit.status == "completed",
                 func.date(PatientVisit.updated_at) == today
@@ -147,10 +147,10 @@ class ReportService:
         completed_visits_today = completed_result.scalar() or 0
 
         # Pending assessments (visits with nursing but no radiology assessment)
-        pending_query = select(func.count(PatientVisit.id)).where(
+        pending_query = select(func.count(PatientVisit.visit_id)).where(
             and_(
                 PatientVisit.status == "open",
-                PatientVisit.id.in_(
+                PatientVisit.visit_id.in_(
                     select(NursingAssessment.visit_id).where(
                         NursingAssessment.visit_id.not_in(
                             select(RadiologyAssessment.visit_id)
@@ -163,14 +163,15 @@ class ReportService:
         pending_assessments = pending_result.scalar() or 0
 
         # Documents uploaded today
-        docs_today_query = select(func.count(Document.id)).where(
-            func.date(Document.uploaded_at) == today
-        )
-        docs_result = await db.execute(docs_today_query)
-        uploaded_documents_today = docs_result.scalar() or 0
+        # docs_today_query = select(func.count(Document.id)).where(
+        #     func.date(Document.uploaded_at) == today
+        # )
+        # docs_result = await db.execute(docs_today_query)
+        # uploaded_documents_today = docs_result.scalar() or 0
+        uploaded_documents_today = 0  # Temporarily disabled
 
         # System users
-        users_query = select(func.count(User.id))
+        users_query = select(func.count(User.user_id))
         users_result = await db.execute(users_query)
         system_users = users_result.scalar() or 0
 
@@ -187,7 +188,7 @@ class ReportService:
     async def _get_patient_demographics(db: AsyncSession) -> PatientDemographics:
         """Get patient demographic statistics"""
         # Total patients
-        total_query = select(func.count(Patient.id))
+        total_query = select(func.count(Patient.ssn))
         total_result = await db.execute(total_query)
         total_patients = total_result.scalar() or 0
 
@@ -204,22 +205,22 @@ class ReportService:
         ]
 
         for condition, label in age_cases:
-            age_query = select(func.count(Patient.id)).where(
+            age_query = select(func.count(Patient.ssn)).where(
                 and_(Patient.date_of_birth.is_not(None), condition)
             )
             age_result = await db.execute(age_query)
             age_distribution[label] = age_result.scalar() or 0
 
         # Gender distribution
-        gender_query = select(Patient.gender, func.count(Patient.id)).group_by(Patient.gender)
+        gender_query = select(Patient.gender, func.count(Patient.ssn)).group_by(Patient.gender)
         gender_result = await db.execute(gender_query)
         gender_distribution = {row[0] or "unknown": row[1] for row in gender_result.all()}
 
         # Visit frequency (visits per patient)
         visit_freq_query = select(
-            func.count(PatientVisit.id).label('visit_count'),
+            func.count(PatientVisit.visit_id).label('visit_count'),
             func.count().label('patient_count')
-        ).select_from(PatientVisit).group_by(PatientVisit.patient_id)
+        ).select_from(PatientVisit).group_by(PatientVisit.patient_ssn)
 
         # This is a simplified version - in practice you'd want more sophisticated analysis
         visit_frequency = {"0-1": 0, "2-5": 0, "6+": 0}
@@ -256,7 +257,7 @@ class ReportService:
 
         visits_by_date_query = select(
             func.date(PatientVisit.created_at).label('date'),
-            func.count(PatientVisit.id).label('count')
+            func.count(PatientVisit.visit_id).label('count')
         ).where(
             and_(
                 func.date(PatientVisit.created_at) >= start_range,
@@ -273,7 +274,7 @@ class ReportService:
         # Visits by status
         status_query = select(
             PatientVisit.status,
-            func.count(PatientVisit.id)
+            func.count(PatientVisit.visit_id)
         ).select_from(base_query.subquery()).group_by(PatientVisit.status)
 
         status_result = await db.execute(status_query)
@@ -356,7 +357,7 @@ class ReportService:
         """Get recent system activity"""
         # Recent visits
         visits_query = select(PatientVisit, Patient.full_name).join(
-            Patient, PatientVisit.patient_id == Patient.id
+            Patient, PatientVisit.patient_ssn == Patient.ssn
         ).order_by(desc(PatientVisit.created_at)).limit(limit)
 
         visits_result = await db.execute(visits_query)
@@ -371,22 +372,22 @@ class ReportService:
         ]
 
         # Recent documents
-        docs_query = select(Document, Patient.full_name).join(
-            PatientVisit, Document.visit_id == PatientVisit.id
-        ).join(
-            Patient, PatientVisit.patient_id == Patient.id
-        ).order_by(desc(Document.uploaded_at)).limit(limit)
-
-        docs_result = await db.execute(docs_query)
-        recent_docs = [
-            {
-                "type": "document",
-                "description": f"Document uploaded for {row[1]}",
-                "timestamp": row[0].uploaded_at.isoformat(),
-                "filename": row[0].original_filename
-            }
-            for row in docs_result.all()
-        ]
+        # docs_query = select(Document, Patient.full_name).join(
+        #     PatientVisit, Document.visit_id == PatientVisit.id
+        # ).join(
+        #     Patient, PatientVisit.patient_id == Patient.id
+        # ).order_by(desc(Document.uploaded_at)).limit(limit)
+        # docs_result = await db.execute(docs_query)
+        # recent_docs = [
+        #     {
+        #         "type": "document",
+        #         "description": f"Document uploaded for {row[1]}",
+        #         "timestamp": row[0].uploaded_at.isoformat(),
+        #         "filename": row[0].original_filename
+        #     }
+        #     for row in docs_result.all()
+        # ]
+        recent_docs = []  # Temporarily disabled
 
         # Combine and sort by timestamp
         all_activity = recent_visits + recent_docs
@@ -400,7 +401,7 @@ class ReportService:
         alerts = []
 
         # Check for pending assessments
-        pending_query = select(func.count(PatientVisit.id)).where(
+        pending_query = select(func.count(PatientVisit.visit_id)).where(
             and_(
                 PatientVisit.status == "open",
                 PatientVisit.created_at < datetime.utcnow() - timedelta(days=1)
@@ -413,18 +414,18 @@ class ReportService:
             alerts.append(f"{pending_count} visits have been open for more than 24 hours")
 
         # Check for old documents without assessments
-        old_docs_query = select(func.count(Document.id)).where(
-            Document.uploaded_at < datetime.utcnow() - timedelta(days=7)
-        ).where(
-            Document.visit_id.in_(
-                select(PatientVisit.id).where(PatientVisit.status == "open")
-            )
-        )
-        old_docs_result = await db.execute(old_docs_query)
-        old_docs_count = old_docs_result.scalar() or 0
-
-        if old_docs_count > 0:
-            alerts.append(f"{old_docs_count} documents uploaded over a week ago are still unassessed")
+        # old_docs_query = select(func.count(Document.id)).where(
+        #     Document.uploaded_at < datetime.utcnow() - timedelta(days=7)
+        # ).where(
+        #     Document.visit_id.in_(
+        #         select(PatientVisit.id).where(PatientVisit.status == "open")
+        #     )
+        # )
+        # old_docs_result = await db.execute(old_docs_query)
+        # old_docs_count = old_docs_result.scalar() or 0
+        # if old_docs_count > 0:
+        #     alerts.append(f"{old_docs_count} documents uploaded over a week ago are still unassessed")
+        pass  # Temporarily disabled
 
         return alerts
 

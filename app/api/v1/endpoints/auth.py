@@ -4,7 +4,7 @@ Authentication endpoints
 
 from datetime import timedelta
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,13 +20,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login
 
 @router.post("/login", response_model=Token)
 async def login(
-    user_credentials: UserLogin,
+    username: str = Form(..., description="Username for authentication"),
+    password: str = Form(..., description="Password for authentication"),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """Authenticate user and return tokens"""
-    user = await AuthService.authenticate_user(
-        db, user_credentials.username, user_credentials.password
-    )
+    user = await AuthService.authenticate_user(db, username, password)
 
     if not user:
         raise HTTPException(

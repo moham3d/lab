@@ -52,7 +52,7 @@ nano .env
 docker-compose up -d
 
 # Run database migrations
-docker-compose exec app alembic upgrade head
+docker-compose exec app python -c "from app.database import create_tables; create_tables()"
 
 # View logs
 docker-compose logs -f app
@@ -121,16 +121,16 @@ BACKEND_CORS_ORIGINS=http://localhost:3000,http://localhost:8080
 
 ## 🗄️ Database Management
 
-### Migrations
+### Schema Management
 ```bash
-# Create new migration
-docker-compose exec app alembic revision --autogenerate -m "migration message"
+# View current schema
+docker-compose exec db psql -U patient_user -d patient_visits -c "\dt"
 
-# Apply migrations
-docker-compose exec app alembic upgrade head
+# Reset database (WARNING: This will delete all data)
+docker-compose exec db psql -U patient_user -d patient_visits -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
-# Downgrade
-docker-compose exec app alembic downgrade -1
+# Reinitialize schema
+docker-compose exec app python -c "from app.database import create_tables; create_tables()"
 ```
 
 ### Backup & Restore

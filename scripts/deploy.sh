@@ -101,16 +101,6 @@ wait_for_services() {
         sleep 2
     done
 
-    # Wait for Redis
-    log_info "Waiting for Redis..."
-    for i in {1..30}; do
-        if docker-compose exec -T redis redis-cli ping &>/dev/null; then
-            log_info "Redis is ready!"
-            break
-        fi
-        sleep 2
-    done
-
     # Wait for application
     log_info "Waiting for application..."
     for i in {1..30}; do
@@ -123,8 +113,9 @@ wait_for_services() {
 }
 
 run_migrations() {
-    log_info "Running database migrations..."
-    docker-compose exec app alembic upgrade head
+    log_info "Database schema already initialized via Docker..."
+    # Database schema is initialized during Docker build using init.sql
+    # No alembic migrations needed
 }
 
 run_tests() {
@@ -158,19 +149,12 @@ show_status() {
     docker-compose ps
 
     log_info "Application Health:"
-    if curl -f -s http://localhost/health >/dev/null 2>&1; then
-        curl -s http://localhost/health | python -m json.tool 2>/dev/null || curl -s http://localhost/health
-    else
-        log_warn "Could not access health endpoint through nginx"
-        log_info "Trying direct app access..."
-        curl -s http://localhost:8000/health | python -m json.tool 2>/dev/null || curl -s http://localhost:8000/health
-    fi
+    curl -s http://localhost:8000/health | python -m json.tool 2>/dev/null || curl -s http://localhost:8000/health
 
     log_info "Useful commands:"
     echo "  • View logs: docker-compose logs -f"
     echo "  • Stop services: docker-compose down"
     echo "  • Restart services: docker-compose restart"
-    echo "  • Run migrations: docker-compose exec app alembic upgrade head"
     echo "  • Access database: docker-compose exec db psql -U patient_user -d patient_visits"
     echo "  • Run monitoring: ./scripts/monitor.sh"
     echo "  • Create backup: ./scripts/backup.sh"
@@ -188,7 +172,7 @@ main() {
     build_services
     start_services
     wait_for_services
-    run_migrations
+    # run_migrations  # Disabled - using existing database schema
 
     # Optional: run tests in production (comment out for faster deployment)
     # run_tests

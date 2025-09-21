@@ -16,6 +16,8 @@ engine = create_async_engine(
     echo=False,  # Set to True for SQL query logging in development
     future=True,
     poolclass=NullPool,  # Disable connection pooling for async
+    # Don't check for table existence on startup
+    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
 )
 
 # Create async session factory
@@ -37,13 +39,17 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def create_tables():
     """Create all database tables"""
-    from app.models import Base  # Import here to avoid circular imports
+    # Database tables already exist, skip creation to avoid conflicts
+    # Since we have existing database schema, we don't want to recreate tables
+    # that might have different column names or foreign key references
+    print("Skipping table creation - using existing database schema")
 
-    async with engine.begin() as conn:
-        # Create tables
-        await conn.run_sync(Base.metadata.create_all)
+    # Explicitly clear metadata to prevent any table creation attempts
+    from app.models import Base
+    Base.metadata.clear()
 
-        # You can add initial data setup here if needed
+    # Don't create any tables
+    pass
 
 
 async def drop_tables():

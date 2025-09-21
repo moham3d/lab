@@ -20,7 +20,7 @@ class NursingAssessment(Base):
     __tablename__ = "nursing_assessments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    visit_id = Column(UUID(as_uuid=True), ForeignKey("patient_visits.id"), nullable=False, unique=True)
+    visit_id = Column(UUID(as_uuid=True), ForeignKey("patient_visits.visit_id"), nullable=False, unique=True)
 
     # Vital signs
     temperature_celsius = Column(Float, nullable=True)
@@ -49,7 +49,7 @@ class NursingAssessment(Base):
     notes = Column(Text, nullable=True)
 
     # Audit fields
-    assessed_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assessed_by = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     assessed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
@@ -109,7 +109,7 @@ class RadiologyAssessment(Base):
     __tablename__ = "radiology_assessments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    visit_id = Column(UUID(as_uuid=True), ForeignKey("patient_visits.id"), nullable=False, unique=True)
+    visit_id = Column(UUID(as_uuid=True), ForeignKey("patient_visits.visit_id"), nullable=False, unique=True)
 
     # Assessment content
     findings = Column(Text, nullable=False)
@@ -125,7 +125,7 @@ class RadiologyAssessment(Base):
     image_urls = Column(String, nullable=True)  # JSON array of image URLs
 
     # Audit fields
-    assessed_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assessed_by = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     assessed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships

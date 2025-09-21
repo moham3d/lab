@@ -5,6 +5,7 @@ Healthcare API for managing patient visits, assessments, and documents
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import uvicorn
@@ -31,8 +32,8 @@ async def lifespan(app: FastAPI):
     """Application lifespan context manager"""
     # Startup
     setup_logging()
-    await create_tables()
-    await create_initial_admin()
+    # await create_tables()  # Disabled - using existing database schema
+    # await create_initial_admin()  # Temporarily disabled - will create admin manually
     FileHandler.ensure_upload_directory()
 
     yield
@@ -41,12 +42,14 @@ async def lifespan(app: FastAPI):
     # Add cleanup logic here if needed
 
 
+from fastapi.responses import HTMLResponse
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description=settings.DESCRIPTION,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    docs_url="/docs",
+    docs_url=None,  # Disable default docs
     redoc_url="/redoc",
     lifespan=lifespan,
 )
@@ -71,8 +74,28 @@ app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=100)  # 100 requests per minute
 app.add_middleware(InputSanitizationMiddleware)
 
+from fastapi.openapi.docs import get_swagger_ui_html
+
 # Include API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.get("/swagger-ui", response_class=HTMLResponse)
+async def custom_swagger_ui():
+    """Custom Swagger UI with correct OpenAPI URL"""
+    return get_swagger_ui_html(
+        openapi_url=f"{settings.API_V1_STR}/openapi.json",
+        title=f"{settings.PROJECT_NAME} - Swagger UI",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
+        swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png"
+    )
+
+
+@app.get("/docs", response_class=HTMLResponse)
+async def redirect_to_swagger_ui():
+    """Redirect /docs to /swagger-ui"""
+    return HTMLResponse(content=f'<html><head><meta http-equiv="refresh" content="0; url=/swagger-ui"></head></html>')
 
 
 @app.get("/health")

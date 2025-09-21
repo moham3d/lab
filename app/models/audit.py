@@ -20,7 +20,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True)
 
     # Action details
     action = Column(String(100), nullable=False, index=True)  # e.g., "CREATE", "READ", "UPDATE", "DELETE"
@@ -48,7 +48,7 @@ class AuditLog(Base):
 
     @staticmethod
     def create_log_entry(
-        user_id: int,
+        user_id: UUID,
         action: str,
         resource_type: str,
         resource_id: UUID,
