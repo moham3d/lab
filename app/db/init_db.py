@@ -3,7 +3,9 @@ from app.core.config import settings
 
 async def execute_schema():
     """Execute the schema.sql file to create tables."""
-    conn = await asyncpg.connect(settings.database_url)
+    # Remove +asyncpg from URL for asyncpg connection
+    db_url = settings.database_url.replace('+asyncpg', '')
+    conn = await asyncpg.connect(db_url)
     try:
         with open("app/db/schema.sql", "r") as f:
             schema_sql = f.read()

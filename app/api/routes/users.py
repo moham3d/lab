@@ -16,7 +16,7 @@ async def get_users(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all users."""
+    """Retrieve a list of users with pagination. Requires admin role."""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
@@ -30,7 +30,7 @@ async def create_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new user."""
+    """Create a new user account. Requires admin role."""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
@@ -63,7 +63,7 @@ async def get_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get user by ID."""
+    """Retrieve a specific user by ID. Admins can view any user, others only themselves."""
     if current_user.role != "admin" and str(current_user.user_id) != user_id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
@@ -80,7 +80,7 @@ async def update_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Update user."""
+    """Update user information. Admins can update any user, others only themselves."""
     if current_user.role != "admin" and str(current_user.user_id) != user_id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     

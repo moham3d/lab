@@ -305,6 +305,35 @@ CREATE TABLE radiology_assessments (
     has_other_imaging BOOLEAN DEFAULT FALSE,
     other_imaging_desc TEXT,
 
+    -- General sheet additional fields
+    mas DECIMAL(10,2) CHECK (mas >= 0), -- Milliampere-seconds for X-ray exposure
+    kv DECIMAL(10,2) CHECK (kv >= 0), -- Kilovoltage for X-ray
+    has_gypsum_splint BOOLEAN DEFAULT FALSE, -- Is there a gypsum splint in the radiology workplace?
+    has_chronic_disease BOOLEAN DEFAULT FALSE, -- Does the patient have any chronic disease?
+    chronic_disease_desc TEXT, -- Description of chronic disease
+    has_pacemaker BOOLEAN DEFAULT FALSE, -- Does the patient have a pacemaker?
+    has_slats_screws_joints BOOLEAN DEFAULT FALSE, -- Have slats, screws, or artificial joints been installed?
+    is_pregnant BOOLEAN DEFAULT FALSE, -- Is the patient pregnant? (for women)
+    has_pain_numbness BOOLEAN DEFAULT FALSE, -- Does the patient have pain, numbness, or burning?
+    pain_numbness_desc TEXT, -- Description of pain/numbness location and details
+    has_spinal_deformities BOOLEAN DEFAULT FALSE, -- Does the patient have spinal deformities or warps?
+    has_swelling BOOLEAN DEFAULT FALSE, -- Does the patient have any swelling?
+    swelling_desc TEXT, -- Description of swelling location
+    has_headache BOOLEAN DEFAULT FALSE, -- Does the patient have headache?
+    has_fever BOOLEAN DEFAULT FALSE, -- Does the patient have fever?
+    has_tumor_history BOOLEAN DEFAULT FALSE, -- Does the patient have any history of tumors?
+    tumor_location TEXT, -- Location of the tumor
+    tumor_type VARCHAR(100), -- Type of the tumor
+    operation_date DATE, -- Date of the operation
+    operation_reason TEXT, -- Reason for the operation
+    previous_investigation_type VARCHAR(100), -- Type of previous investigation
+    previous_investigation_date DATE, -- Date of previous investigation
+    has_disc_slip BOOLEAN DEFAULT FALSE, -- Does the patient have slipped disc?
+    medications_fall_risk TEXT, -- Medications that increase fall risk
+    current_medications TEXT, -- Current medications taken by the patient
+    patient_signature TEXT, -- Patient signature
+    physician_signature TEXT, -- Physician signature
+
     -- Audit fields
     assessed_by UUID NOT NULL REFERENCES users(user_id),
     assessed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

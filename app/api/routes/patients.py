@@ -15,7 +15,7 @@ async def get_patients(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all patients."""
+    """Retrieve a list of patients with pagination."""
     result = await db.execute(select(Patient).offset(skip).limit(limit))
     patients = result.scalars().all()
     return patients
@@ -26,7 +26,7 @@ async def create_patient(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new patient."""
+    """Create a new patient record with SSN, name, contact info, etc."""
     # Check if patient exists
     result = await db.execute(select(Patient).where(Patient.ssn == patient_data.ssn))
     if result.scalar_one_or_none():
@@ -53,7 +53,7 @@ async def get_patient(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get patient by SSN."""
+    """Retrieve a specific patient by SSN."""
     result = await db.execute(select(Patient).where(Patient.ssn == ssn))
     patient = result.scalar_one_or_none()
     if not patient:
@@ -67,7 +67,7 @@ async def update_patient(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Update patient."""
+    """Update patient information."""
     result = await db.execute(select(Patient).where(Patient.ssn == ssn))
     patient = result.scalar_one_or_none()
     if not patient:

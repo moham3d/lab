@@ -15,7 +15,7 @@ async def get_reports(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all reports."""
+    """Retrieve a list of reports with pagination."""
     result = await db.execute(select(Report).offset(skip).limit(limit))
     reports = result.scalars().all()
     return reports
@@ -26,7 +26,7 @@ async def create_report(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new report."""
+    """Create a new report for a patient visit."""
     # Check if visit exists
     result = await db.execute(select(PatientVisit).where(PatientVisit.visit_id == report_data.visit_id))
     if not result.scalar_one_or_none():
@@ -50,7 +50,7 @@ async def get_report(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get report by ID."""
+    """Retrieve a specific report by ID."""
     result = await db.execute(select(Report).where(Report.report_id == report_id))
     report = result.scalar_one_or_none()
     if not report:
@@ -64,7 +64,7 @@ async def update_report(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Update report."""
+    """Update report information. Requires ownership or admin role."""
     result = await db.execute(select(Report).where(Report.report_id == report_id))
     report = result.scalar_one_or_none()
     if not report:

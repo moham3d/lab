@@ -6,7 +6,7 @@ from app.db.init_db import Base
 from app.core.config import settings
 
 # Test database URL
-TEST_DATABASE_URL = "postgresql+asyncpg://test_user:test_pass@localhost/test_db"
+TEST_DATABASE_URL = "postgresql://test_user:test_pass@localhost/test_db"
 
 # Create test engine
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=True)

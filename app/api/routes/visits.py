@@ -15,7 +15,7 @@ async def get_visits(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all visits."""
+    """Retrieve a list of patient visits with pagination."""
     result = await db.execute(select(PatientVisit).offset(skip).limit(limit))
     visits = result.scalars().all()
     return visits
@@ -26,7 +26,7 @@ async def create_visit(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new visit."""
+    """Create a new patient visit record."""
     # Check if patient exists
     from app.models import Patient
     result = await db.execute(select(Patient).where(Patient.ssn == visit_data.patient_ssn))
@@ -50,7 +50,7 @@ async def get_visit(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get visit by ID."""
+    """Retrieve a specific visit by ID."""
     result = await db.execute(select(PatientVisit).where(PatientVisit.visit_id == visit_id))
     visit = result.scalar_one_or_none()
     if not visit:
@@ -64,7 +64,7 @@ async def update_visit(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Update visit."""
+    """Update visit information."""
     result = await db.execute(select(PatientVisit).where(PatientVisit.visit_id == visit_id))
     visit = result.scalar_one_or_none()
     if not visit:
