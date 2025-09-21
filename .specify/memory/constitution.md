@@ -1,17 +1,17 @@
 <!-- Sync Impact Report
-Version change: 0.0.0 → 1.0.0
-List of modified principles: None (new)
-Added sections: Principles 1-5, Governance
+Version change: 1.0.0 → 1.1.0
+List of modified principles: None
+Added sections: Principles 6-11 (Frontend Development)
 Removed sections: None
 Templates requiring updates: None (no templates exist)
-Follow-up TODOs: RATIFICATION_DATE needs to be set
+Follow-up TODOs: None
 -->
 
 # Project Constitution
 
 **Project Name:** Patient Visit Management System
 
-**Constitution Version:** 1.0.0
+**Constitution Version:** 1.1.0
 
 **Ratification Date:** TODO(RATIFICATION_DATE): Original adoption date not specified
 
@@ -43,6 +43,36 @@ Rationale: Captures comprehensive medical evaluations and assessments critical f
 Reports MUST be linked to a patient and visit, containing summary and doctor notes. A router /reports MUST be provided.
 
 Rationale: Enables documentation of visit outcomes and facilitates communication among healthcare providers.
+
+### Principle 6: Frontend Technology Stack
+The frontend MUST use HTMX for dynamic content loading, Alpine.js for client-side interactivity, and Tailwind CSS for styling. No heavy frameworks like React or Vue MUST be used. The application MUST be a single-page application with partial updates.
+
+Rationale: Ensures lightweight, fast, and maintainable frontend that integrates seamlessly with the FastAPI backend.
+
+### Principle 7: User Interface Design
+The UI MUST be clean, medical-grade with accessibility compliance, role-based navigation, and responsive design for tablets and desktop. Arabic/English language support MUST be included. Toast notifications and loading indicators MUST be provided.
+
+Rationale: Provides professional, accessible interface suitable for healthcare environments and multilingual users.
+
+### Principle 8: Form Management
+Forms MUST support multi-section tabbed interfaces, auto-save with debounced HTMX requests, real-time validation, progress indicators, and print-ready layouts. Conditional field display and rich text editors MUST be supported where appropriate.
+
+Rationale: Enables efficient data entry with user-friendly interfaces that prevent data loss and ensure completeness.
+
+### Principle 9: Data Management Interfaces
+Patient and visit management MUST include real-time search capabilities, advanced filtering, bulk operations, and CRUD interfaces. Data grids with sorting, pagination, and export functionality MUST be provided.
+
+Rationale: Allows efficient management of large datasets with professional administrative tools.
+
+### Principle 10: Reporting and Analytics
+Role-based dashboards with statistics, activity feeds, and quick actions MUST be provided. Reports MUST support date ranges, export to PDF/Excel, and real-time data updates.
+
+Rationale: Enables data-driven decision making and operational oversight.
+
+### Principle 11: Admin Data Management
+Admin interfaces MUST provide full CRUD operations, bulk data management, user management, audit trails, and advanced reporting. Data validation, duplicate detection, and archiving capabilities MUST be included.
+
+Rationale: Ensures comprehensive system administration and data integrity.
 
 ## Governance
 
