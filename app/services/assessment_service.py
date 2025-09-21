@@ -3,12 +3,13 @@ Assessment service for nursing and radiology form management
 """
 
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.assessment import NursingAssessment, RadiologyAssessment
+from app.models.form import FormDefinition, FormSubmission
 from app.models.visit import PatientVisit, VisitStatus
 from app.schemas.assessment import (
     NursingAssessmentCreate,
@@ -26,6 +27,55 @@ class AssessmentService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    async def _get_or_create_form_definition(self, form_type: str) -> FormDefinition:
+        """Get or create form definition for assessment type"""
+        query = select(FormDefinition).where(
+            FormDefinition.form_type == form_type,
+            FormDefinition.is_active == "active"
+        )
+        result = await self.db.execute(query)
+        form_def = result.scalar_one_or_none()
+        
+        if not form_def:
+            # Create default form definition
+            form_def = FormDefinition(
+                form_name=f"{form_type.title()} Assessment",
+                form_type=form_type,
+                description=f"Default {form_type} assessment form",
+                created_by=uuid4()  # System user - in real app would be proper admin
+            )
+            self.db.add(form_def)
+            await self.db.commit()
+            await self.db.refresh(form_def)
+        
+        return form_def
+
+    async def _create_form_submission(self, visit_id: UUID, form_type: str, submitted_by: UUID) -> FormSubmission:
+        """Create form submission for assessment"""
+        form_def = await self._get_or_create_form_definition(form_type)
+        
+        # Check if submission already exists
+        query = select(FormSubmission).where(
+            FormSubmission.visit_id == visit_id,
+            FormSubmission.form_id == form_def.form_id
+        )
+        result = await self.db.execute(query)
+        existing = result.scalar_one_or_none()
+        
+        if existing:
+            return existing
+        
+        submission = FormSubmission(
+            visit_id=visit_id,
+            form_id=form_def.form_id,
+            submitted_by=submitted_by,
+            submission_status="submitted"
+        )
+        self.db.add(submission)
+        await self.db.commit()
+        await self.db.refresh(submission)
+        return submission
+
     # Nursing Assessment Methods
     async def get_nursing_assessment(self, assessment_id: UUID) -> Optional[NursingAssessment]:
         """Get nursing assessment by ID"""
@@ -35,7 +85,9 @@ class AssessmentService:
 
     async def get_nursing_assessment_by_visit(self, visit_id: UUID) -> Optional[NursingAssessment]:
         """Get nursing assessment by visit ID"""
-        query = select(NursingAssessment).where(NursingAssessment.visit_id == visit_id)
+        query = select(NursingAssessment).join(FormSubmission).where(
+            FormSubmission.visit_id == visit_id
+        )
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
@@ -60,14 +112,22 @@ class AssessmentService:
         if existing:
             raise ValueError("Nursing assessment already exists for this visit")
 
+        # Create form submission
+        submission = await self._create_form_submission(assessment_data.visit_id, "nursing", assessed_by)
+
         # Calculate BMI if weight and height provided
         bmi = None
         if assessment_data.weight_kg and assessment_data.height_cm:
             height_m = assessment_data.height_cm / 100
             bmi = round(assessment_data.weight_kg / (height_m ** 2), 1)
 
+        # Create assessment data excluding visit_id
+        assessment_dict = assessment_data.dict()
+        assessment_dict.pop('visit_id', None)  # Remove visit_id since we use submission_id
+        
         assessment = NursingAssessment(
-            **assessment_data.dict(),
+            **assessment_dict,
+            submission_id=submission.submission_id,
             bmi=bmi,
             assessed_by=assessed_by
         )
@@ -87,9 +147,9 @@ class AssessmentService:
         if not assessment:
             return None
 
-        # Verify visit is still open
-        query = select(PatientVisit).where(
-            PatientVisit.id == assessment.visit_id,
+        # Get visit through form submission
+        query = select(PatientVisit).join(FormSubmission).where(
+            FormSubmission.submission_id == assessment.submission_id,
             PatientVisit.status == VisitStatus.OPEN
         )
         result = await self.db.execute(query)
@@ -126,7 +186,9 @@ class AssessmentService:
 
     async def get_radiology_assessment_by_visit(self, visit_id: UUID) -> Optional[RadiologyAssessment]:
         """Get radiology assessment by visit ID"""
-        query = select(RadiologyAssessment).where(RadiologyAssessment.visit_id == visit_id)
+        query = select(RadiologyAssessment).join(FormSubmission).where(
+            FormSubmission.visit_id == visit_id
+        )
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
@@ -151,8 +213,16 @@ class AssessmentService:
         if existing:
             raise ValueError("Radiology assessment already exists for this visit")
 
+        # Create form submission
+        submission = await self._create_form_submission(assessment_data.visit_id, "radiology", assessed_by)
+
+        # Create assessment data excluding visit_id
+        assessment_dict = assessment_data.dict()
+        assessment_dict.pop('visit_id', None)  # Remove visit_id since we use submission_id
+
         assessment = RadiologyAssessment(
-            **assessment_data.dict(),
+            **assessment_dict,
+            submission_id=submission.submission_id,
             assessed_by=assessed_by
         )
         self.db.add(assessment)
@@ -171,9 +241,9 @@ class AssessmentService:
         if not assessment:
             return None
 
-        # Verify visit is still open
-        query = select(PatientVisit).where(
-            PatientVisit.id == assessment.visit_id,
+        # Get visit through form submission
+        query = select(PatientVisit).join(FormSubmission).where(
+            FormSubmission.submission_id == assessment.submission_id,
             PatientVisit.status == VisitStatus.OPEN
         )
         result = await self.db.execute(query)

@@ -12,6 +12,7 @@ from .patient import Patient
 from .visit import PatientVisit
 from .assessment import NursingAssessment, RadiologyAssessment
 from .document import Document
+from .form import FormDefinition, FormSubmission
 
 __all__ = [
     "Base",
@@ -20,5 +21,7 @@ __all__ = [
     "PatientVisit",
     "NursingAssessment",
     "RadiologyAssessment",
-    "Document"
+    "Document",
+    "FormDefinition",
+    "FormSubmission"
 ]

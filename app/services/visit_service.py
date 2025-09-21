@@ -65,7 +65,6 @@ class VisitService:
         visit = PatientVisit(
             patient_id=visit_data.patient_id,  # Use UUID for the foreign key
             visit_date=visit_data.visit_date,
-            chief_complaint=visit_data.chief_complaint,
             notes=visit_data.notes,
             created_by=created_by,
         )

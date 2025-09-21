@@ -36,7 +36,6 @@ class PatientVisit(Base):
     diagnosis_code = Column(String(20), nullable=True, name="diagnosis_code")
     visit_type = Column(String(30), default="outpatient", nullable=False, name="visit_type")
     department = Column(String(100), nullable=True, name="department")
-    chief_complaint = Column(Text, nullable=True, name="chief_complaint")
     notes = Column(Text, nullable=True, name="notes")
 
     # Audit fields
@@ -48,8 +47,7 @@ class PatientVisit(Base):
 
     # Relationships
     patient = relationship("Patient", back_populates="visits")
-    nursing_assessment = relationship("NursingAssessment", back_populates="visit", uselist=False)
-    radiology_assessment = relationship("RadiologyAssessment", back_populates="visit", uselist=False)
+    form_submissions = relationship("FormSubmission", back_populates="visit", cascade="all, delete-orphan")
     # documents = relationship("Document", back_populates="visit", cascade="all, delete-orphan")  # Temporarily disabled
 
     def __repr__(self):

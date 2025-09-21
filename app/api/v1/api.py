@@ -4,7 +4,7 @@ API v1 package
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, patients, visits, assessments, reports, admin
+from app.api.v1.endpoints import auth, patients, visits, assessments, admin  # reports temporarily disabled
 
 api_router = APIRouter()
 
@@ -14,5 +14,5 @@ api_router.include_router(patients.router, prefix="/patients", tags=["patients"]
 api_router.include_router(visits.router, prefix="/visits", tags=["visits"])
 api_router.include_router(assessments.router, prefix="/assessments", tags=["assessments"])
 # api_router.include_router(documents.router, prefix="/documents", tags=["documents"])  # Temporarily disabled
-api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+# api_router.include_router(reports.router, prefix="/reports", tags=["reports"])  # Temporarily disabled
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])

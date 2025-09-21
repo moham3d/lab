@@ -27,7 +27,6 @@ class APITester:
         self.test_user_id: Optional[str] = None
         self.test_patient_id: Optional[str] = None
         self.test_patient_ssn: Optional[str] = None
-        self.test_patient_ssn: Optional[str] = None
         self.test_visit_id: Optional[str] = None
         self.test_nursing_assessment_id: Optional[str] = None
         self.test_radiology_assessment_id: Optional[str] = None
@@ -186,9 +185,8 @@ class APITester:
 
         # Create visit
         visit_data = {
-            "patient_id": self.test_patient_ssn,  # Use SSN for visit creation
+            "patient_id": self.test_patient_id,  # Use UUID for visit creation
             "visit_date": (datetime.now() - timedelta(days=1)).isoformat(),  # 1 day ago
-            "chief_complaint": "Test complaint for API testing",
             "notes": "Test notes for API testing"
         }
 
@@ -215,7 +213,6 @@ class APITester:
 
         # Update visit
         update_data = {
-            "chief_complaint": "Updated test complaint",
             "notes": "Updated test notes"
         }
         response = self.make_request("PUT", f"/visits/{self.test_visit_id}", update_data)
