@@ -2,6 +2,7 @@
 Application configuration using Pydantic settings
 """
 
+import os
 from typing import List, Optional
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -49,19 +50,19 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",  # React dev server
-        "http://localhost:8080",  # Vue dev server
-        "https://localhost:3000",
-        "https://localhost:8080",
-    ]
+    BACKEND_CORS_ORIGINS: List[str] = []
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v):
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
-        return v
+        return v or [
+            "http://localhost:3000",  # React dev server
+            "http://localhost:8080",  # Vue dev server
+            "https://localhost:3000",
+            "https://localhost:8080",
+        ]
 
     # Trusted hosts
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
@@ -100,8 +101,9 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True
+        env_file=".env.test" if os.getenv("ENVIRONMENT") == "test" else ".env",
+        case_sensitive=True,
+        env_nested_delimiter="__"
     )
 
 

@@ -311,5 +311,4 @@ class AuditService:
         if resource_type == "user" and action in {"CREATE", "UPDATE", "DELETE"}:
             return True
 
-        return False</content>
-<parameter name="filePath">C:\Users\Mohamed\Desktop\lab\app\services\audit_service.py
+        return False
