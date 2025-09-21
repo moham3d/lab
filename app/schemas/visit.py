@@ -34,7 +34,7 @@ class VisitBase(BaseModel):
 
 class VisitCreate(VisitBase):
     """Schema for creating a visit"""
-    patient_id: UUID = Field(..., description="Patient ID")
+    patient_id: UUID = Field(..., description="Patient UUID")
 
 
 class VisitUpdate(BaseModel):

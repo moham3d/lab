@@ -3,8 +3,19 @@ Report service for dashboard and analytics data generation
 """
 
 from datetime import datetime, date, timedelta
-from typing import Dict, Any, List, Optional
-from uuid import UUID
+from typing import Dict, Any, Lis        # Pending assessments (visits with nursing but no radiology assessment)
+        pending_query = select(func.count(PatientVisit.id)).where(
+            and_(
+                PatientVisit.status == "open",
+                PatientVisit.id.in_(
+                    select(NursingAssessment.visit_id).where(
+                        NursingAssessment.visit_id.not_in(
+                            select(RadiologyAssessment.visit_id)
+                        )
+                    )
+                )
+            )
+        )rom uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, desc, extract
@@ -129,7 +140,7 @@ class ReportService:
         total_patients = patients_result.scalar() or 0
 
         # Active visits (status = 'open')
-        active_visits_query = select(func.count(PatientVisit.visit_id)).where(
+        active_visits_query = select(func.count(PatientVisit.id)).where(
             PatientVisit.status == "open"
         )
         active_result = await db.execute(active_visits_query)
@@ -137,7 +148,7 @@ class ReportService:
 
         # Completed visits today
         today = date.today()
-        completed_today_query = select(func.count(PatientVisit.visit_id)).where(
+        completed_today_query = select(func.count(PatientVisit.id)).where(
             and_(
                 PatientVisit.status == "completed",
                 func.date(PatientVisit.updated_at) == today
@@ -147,10 +158,10 @@ class ReportService:
         completed_visits_today = completed_result.scalar() or 0
 
         # Pending assessments (visits with nursing but no radiology assessment)
-        pending_query = select(func.count(PatientVisit.visit_id)).where(
+        pending_query = select(func.count(PatientVisit.id)).where(
             and_(
                 PatientVisit.status == "open",
-                PatientVisit.visit_id.in_(
+                PatientVisit.id.in_(
                     select(NursingAssessment.visit_id).where(
                         NursingAssessment.visit_id.not_in(
                             select(RadiologyAssessment.visit_id)
@@ -218,7 +229,7 @@ class ReportService:
 
         # Visit frequency (visits per patient)
         visit_freq_query = select(
-            func.count(PatientVisit.visit_id).label('visit_count'),
+            func.count(PatientVisit.id).label('visit_count'),
             func.count().label('patient_count')
         ).select_from(PatientVisit).group_by(PatientVisit.patient_ssn)
 
@@ -257,7 +268,7 @@ class ReportService:
 
         visits_by_date_query = select(
             func.date(PatientVisit.created_at).label('date'),
-            func.count(PatientVisit.visit_id).label('count')
+            func.count(PatientVisit.id).label('count')
         ).where(
             and_(
                 func.date(PatientVisit.created_at) >= start_range,
@@ -274,7 +285,7 @@ class ReportService:
         # Visits by status
         status_query = select(
             PatientVisit.status,
-            func.count(PatientVisit.visit_id)
+            func.count(PatientVisit.id)
         ).select_from(base_query.subquery()).group_by(PatientVisit.status)
 
         status_result = await db.execute(status_query)
@@ -401,7 +412,7 @@ class ReportService:
         alerts = []
 
         # Check for pending assessments
-        pending_query = select(func.count(PatientVisit.visit_id)).where(
+        pending_query = select(func.count(PatientVisit.id)).where(
             and_(
                 PatientVisit.status == "open",
                 PatientVisit.created_at < datetime.utcnow() - timedelta(days=1)

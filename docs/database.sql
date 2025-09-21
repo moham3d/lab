@@ -96,27 +96,9 @@ CREATE TABLE form_submissions (
 -- Nursing assessment main data
 CREATE TABLE nursing_assessments (
     assessment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    submission_id UUID NOT NULL REFERENCES form_submissions(submission_id) ON DELETE CASCADE,
+    visit_id UUID NOT NULL REFERENCES patient_visits(visit_id) ON DELETE CASCADE,
     
-    -- Mode of arrival
-    mode_of_arrival VARCHAR(20) CHECK (mode_of_arrival IN ('walk', 'ambulatory', 'wheelchair', 'stretcher', 'other')),
-    arrival_other_desc TEXT,
-    
-    -- Chief complaint and demographics
-    age INTEGER,
-    chief_complaint TEXT,
-    accompanied_by VARCHAR(20) CHECK (accompanied_by IN ('spouse', 'relative', 'other', 'alone')),
-    language_spoken VARCHAR(20) DEFAULT 'arabic' CHECK (language_spoken IN ('arabic', 'english', 'other')),
-    language_other_desc TEXT,
-    
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Vital signs
-CREATE TABLE vital_signs (
-    vital_signs_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    assessment_id UUID NOT NULL REFERENCES nursing_assessments(assessment_id) ON DELETE CASCADE,
-    
+    -- Vital signs
     temperature_celsius DECIMAL(4,2),
     pulse_bpm INTEGER,
     blood_pressure_systolic INTEGER,
@@ -127,8 +109,53 @@ CREATE TABLE vital_signs (
     weight_kg DECIMAL(5,2),
     height_cm DECIMAL(5,2),
     
-    recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    -- Assessment data
+    pain_assessment TEXT,
+    fall_risk_assessment TEXT,
+    
+    -- General assessment
+    general_condition VARCHAR(100),
+    consciousness_level VARCHAR(50),
+    skin_condition TEXT,
+    mobility_status VARCHAR(100),
+    
+    -- Notes
+    notes TEXT,
+    
+    -- Audit fields
+    assessed_by UUID NOT NULL REFERENCES users(user_id),
+    assessed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+);
+
+-- ===================================================================
+-- RADIOLOGY FORM (SH.MR.FRM.04) SPECIFIC TABLES
+-- ===================================================================
+
+-- Radiology assessments
+CREATE TABLE radiology_assessments (
+    radiology_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    visit_id UUID NOT NULL REFERENCES patient_visits(visit_id) ON DELETE CASCADE,
+    
+    -- Assessment content
+    findings TEXT NOT NULL,
+    diagnosis TEXT,
+    recommendations TEXT,
+    
+    -- Technical details
+    modality VARCHAR(50),
+    body_region VARCHAR(100),
+    contrast_used TEXT,
+    
+    -- Audit fields
+    assessed_by UUID NOT NULL REFERENCES users(user_id),
+    assessed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ===================================================================
+-- DOCUMENT STORAGE
+-- ===================================================================
 
 -- Psychosocial history
 CREATE TABLE psychosocial_history (
@@ -315,41 +342,21 @@ CREATE TABLE abuse_neglect_screening (
 -- Radiology assessments
 CREATE TABLE radiology_assessments (
     radiology_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    submission_id UUID NOT NULL REFERENCES form_submissions(submission_id) ON DELETE CASCADE,
+    visit_id UUID NOT NULL REFERENCES patient_visits(visit_id) ON DELETE CASCADE,
     
-    treating_physician VARCHAR(255),
-    department VARCHAR(100),
-    fasting_hours INTEGER,
-    is_diabetic BOOLEAN DEFAULT FALSE,
-    blood_sugar_level INTEGER,
-    weight_kg DECIMAL(5,2),
-    height_cm DECIMAL(5,2),
-    
-    -- Injection details
-    dose_amount DECIMAL(10,2),
-    preparation_time TIME,
-    injection_time TIME,
-    injection_site VARCHAR(100),
-    
-    -- Technical parameters
-    ctd1vol DECIMAL(10,2),
-    dlp DECIMAL(10,2),
-    
-    -- Contrast and kidney function
-    uses_contrast BOOLEAN DEFAULT FALSE,
-    kidney_function_value DECIMAL(10,2),
-    
-    -- Study details
-    is_first_time BOOLEAN DEFAULT TRUE,
-    is_comparison BOOLEAN DEFAULT FALSE,
-    previous_study_code VARCHAR(50),
-    requires_report BOOLEAN DEFAULT TRUE,
-    requires_cd BOOLEAN DEFAULT FALSE,
-    
+    -- Assessment content
+    findings TEXT NOT NULL,
     diagnosis TEXT,
-    reason_for_study TEXT,
+    recommendations TEXT,
     
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    -- Technical details
+    modality VARCHAR(50),
+    body_region VARCHAR(100),
+    contrast_used TEXT,
+    
+    -- Audit fields
+    assessed_by UUID NOT NULL REFERENCES users(user_id),
+    assessed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Treatment history for radiology patients
@@ -459,8 +466,8 @@ CREATE INDEX idx_submissions_form ON form_submissions(form_id);
 CREATE INDEX idx_submissions_status ON form_submissions(submission_status);
 
 -- Assessment indexes
-CREATE INDEX idx_nursing_assessment ON nursing_assessments(submission_id);
-CREATE INDEX idx_radiology_assessment ON radiology_assessments(submission_id);
+CREATE INDEX idx_nursing_assessment ON nursing_assessments(visit_id);
+CREATE INDEX idx_radiology_assessment ON radiology_assessments(visit_id);
 
 -- Document indexes
 CREATE INDEX idx_documents_visit ON visit_documents(visit_id);

@@ -19,7 +19,7 @@ class NursingAssessment(Base):
     """
     __tablename__ = "nursing_assessments"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    assessment_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     visit_id = Column(UUID(as_uuid=True), ForeignKey("patient_visits.visit_id"), nullable=False, unique=True)
 
     # Vital signs
@@ -56,7 +56,7 @@ class NursingAssessment(Base):
     visit = relationship("PatientVisit", back_populates="nursing_assessment")
 
     def __repr__(self):
-        return f"<NursingAssessment(id={self.id}, visit_id={self.visit_id})>"
+        return f"<NursingAssessment(assessment_id={self.assessment_id}, visit_id={self.visit_id})>"
 
     @staticmethod
     def validate_temperature(temp: float) -> bool:
@@ -108,7 +108,7 @@ class RadiologyAssessment(Base):
     """
     __tablename__ = "radiology_assessments"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    radiology_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     visit_id = Column(UUID(as_uuid=True), ForeignKey("patient_visits.visit_id"), nullable=False, unique=True)
 
     # Assessment content
@@ -132,7 +132,7 @@ class RadiologyAssessment(Base):
     visit = relationship("PatientVisit", back_populates="radiology_assessment")
 
     def __repr__(self):
-        return f"<RadiologyAssessment(id={self.id}, visit_id={self.visit_id}, modality={self.modality})>"
+        return f"<RadiologyAssessment(radiology_id={self.radiology_id}, visit_id={self.visit_id}, modality={self.modality})>"
 
     @staticmethod
     def validate_findings(findings: str) -> bool:

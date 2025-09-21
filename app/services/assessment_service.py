@@ -29,7 +29,7 @@ class AssessmentService:
     # Nursing Assessment Methods
     async def get_nursing_assessment(self, assessment_id: UUID) -> Optional[NursingAssessment]:
         """Get nursing assessment by ID"""
-        query = select(NursingAssessment).where(NursingAssessment.id == assessment_id)
+        query = select(NursingAssessment).where(NursingAssessment.assessment_id == assessment_id)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
@@ -120,7 +120,7 @@ class AssessmentService:
     # Radiology Assessment Methods
     async def get_radiology_assessment(self, assessment_id: UUID) -> Optional[RadiologyAssessment]:
         """Get radiology assessment by ID"""
-        query = select(RadiologyAssessment).where(RadiologyAssessment.id == assessment_id)
+        query = select(RadiologyAssessment).where(RadiologyAssessment.radiology_id == assessment_id)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 

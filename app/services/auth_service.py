@@ -85,6 +85,12 @@ class AuthService:
         return result.scalar_one_or_none()
 
     @staticmethod
+    async def list_users(db: AsyncSession) -> list[User]:
+        """List all users"""
+        result = await db.execute(select(User).where(User.is_active == True))
+        return list(result.scalars().all())
+
+    @staticmethod
     def create_tokens(user: User) -> dict:
         """Create access and refresh tokens for user"""
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

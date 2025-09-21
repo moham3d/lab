@@ -84,8 +84,5 @@ async def list_users(
     # TODO: Add admin permission check
 ) -> Any:
     """List all users (admin only)"""
-    # TODO: Implement user listing
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="User listing not yet implemented",
-    )
+    users = await AuthService.list_users(db)
+    return [UserResponse.from_orm(user) for user in users]

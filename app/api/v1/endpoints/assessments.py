@@ -33,7 +33,7 @@ async def create_nursing_assessment(
     """Create a new nursing assessment"""
     service = AssessmentService(db)
     try:
-        db_assessment = await service.create_nursing_assessment(assessment, current_user.id)
+        db_assessment = await service.create_nursing_assessment(assessment, current_user.user_id)
         return NursingAssessmentResponse.from_orm(db_assessment)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -77,7 +77,7 @@ async def update_nursing_assessment(
     """Update nursing assessment"""
     service = AssessmentService(db)
     try:
-        db_assessment = await service.update_nursing_assessment(assessment_id, assessment_update, current_user.id)
+        db_assessment = await service.update_nursing_assessment(assessment_id, assessment_update, current_user.user_id)
         if not db_assessment:
             raise HTTPException(status_code=404, detail="Nursing assessment not found")
         return NursingAssessmentResponse.from_orm(db_assessment)
@@ -95,7 +95,7 @@ async def create_radiology_assessment(
     """Create a new radiology assessment"""
     service = AssessmentService(db)
     try:
-        db_assessment = await service.create_radiology_assessment(assessment, current_user.id)
+        db_assessment = await service.create_radiology_assessment(assessment, current_user.user_id)
         return RadiologyAssessmentResponse.from_orm(db_assessment)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -139,7 +139,7 @@ async def update_radiology_assessment(
     """Update radiology assessment"""
     service = AssessmentService(db)
     try:
-        db_assessment = await service.update_radiology_assessment(assessment_id, assessment_update, current_user.id)
+        db_assessment = await service.update_radiology_assessment(assessment_id, assessment_update, current_user.user_id)
         if not db_assessment:
             raise HTTPException(status_code=404, detail="Radiology assessment not found")
         return RadiologyAssessmentResponse.from_orm(db_assessment)

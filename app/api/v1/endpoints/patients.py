@@ -25,7 +25,7 @@ async def create_patient(
     """Create a new patient"""
     service = PatientService(db)
     try:
-        db_patient = await service.create_patient(patient, current_user.id)
+        db_patient = await service.create_patient(patient, current_user.user_id)
         return PatientResponse.model_validate(db_patient)
     except ValueError as e:
         # Check if it's a duplicate error
@@ -77,7 +77,7 @@ async def update_patient(
     """Update patient information"""
     service = PatientService(db)
     try:
-        db_patient = await service.update_patient(patient_id, patient_update, current_user.id)
+        db_patient = await service.update_patient(patient_id, patient_update, current_user.user_id)
         if not db_patient:
             raise HTTPException(status_code=404, detail="Patient not found")
         return PatientResponse.model_validate(db_patient)
@@ -96,7 +96,7 @@ async def deactivate_patient(
 ):
     """Deactivate a patient (soft delete)"""
     service = PatientService(db)
-    success = await service.deactivate_patient(patient_id, current_user.id)
+    success = await service.deactivate_patient(patient_id, current_user.user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Patient not found")
     return {"message": "Patient deactivated successfully"}

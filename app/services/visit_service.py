@@ -63,9 +63,11 @@ class VisitService:
             raise ValueError(f"Patient with ID {visit_data.patient_id} not found")
 
         visit = PatientVisit(
-            **visit_data.dict(),
+            patient_id=visit_data.patient_id,  # Use UUID for the foreign key
+            visit_date=visit_data.visit_date,
+            chief_complaint=visit_data.chief_complaint,
+            notes=visit_data.notes,
             created_by=created_by,
-            updated_by=created_by
         )
         self.db.add(visit)
         await self.db.commit()
@@ -91,13 +93,12 @@ class VisitService:
         if 'status' in update_data:
             new_status = update_data['status']
             if not visit.can_transition_to(new_status):
-                raise ValueError(f"Cannot transition from {visit.status.value} to {new_status.value}")
+                raise ValueError(f"Cannot transition from {visit.status} to {new_status}")
 
         # Update visit
         for field, value in update_data.items():
             setattr(visit, field, value)
 
-        visit.updated_by = updated_by
         await self.db.commit()
         await self.db.refresh(visit)
         return visit

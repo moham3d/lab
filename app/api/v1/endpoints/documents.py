@@ -45,7 +45,7 @@ async def upload_document(
             file=file,
             visit_id=visit_id,
             document_type=document_type,
-            user_id=current_user.id,
+            user_id=current_user.user_id,
             title=title,
             description=description
         )
@@ -80,7 +80,7 @@ async def validate_file_upload(
             db=db,
             validation_request=validation_request,
             visit_id=visit_id,
-            user_id=current_user.id
+            user_id=current_user.user_id
         )
 
         return FileValidationResponse(**validation_result)
@@ -104,7 +104,7 @@ async def get_document(
         document = await DocumentService.get_document_by_id(
             db=db,
             document_id=document_id,
-            user_id=current_user.id
+            user_id=current_user.user_id
         )
 
         return DocumentService.document_to_response(document)
@@ -130,7 +130,7 @@ async def get_visit_documents(
         documents = await DocumentService.get_documents_by_visit(
             db=db,
             visit_id=visit_id,
-            user_id=current_user.id,
+            user_id=current_user.user_id,
             skip=skip,
             limit=limit
         )
@@ -167,7 +167,7 @@ async def update_document(
             db=db,
             document_id=document_id,
             update_data=update_data,
-            user_id=current_user.id
+            user_id=current_user.user_id
         )
 
         return DocumentService.document_to_response(document)
@@ -191,7 +191,7 @@ async def delete_document(
         success = await DocumentService.delete_document(
             db=db,
             document_id=document_id,
-            user_id=current_user.id
+            user_id=current_user.user_id
         )
 
         if success:
@@ -221,14 +221,14 @@ async def download_document(
         file_path = await DocumentService.get_document_file_path(
             db=db,
             document_id=document_id,
-            user_id=current_user.id
+            user_id=current_user.user_id
         )
 
         # Get document for filename
         document = await DocumentService.get_document_by_id(
             db=db,
             document_id=document_id,
-            user_id=current_user.id
+            user_id=current_user.user_id
         )
 
         return FileResponse(

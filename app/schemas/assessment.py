@@ -97,7 +97,7 @@ class NursingAssessmentUpdate(BaseModel):
 
 class NursingAssessmentResponse(NursingAssessmentBase):
     """Schema for nursing assessment response"""
-    id: UUID
+    assessment_id: UUID
     assessed_by: int
     assessed_at: datetime
     bmi: Optional[float]
@@ -179,7 +179,7 @@ class RadiologyAssessmentUpdate(BaseModel):
 
 class RadiologyAssessmentResponse(RadiologyAssessmentBase):
     """Schema for radiology assessment response"""
-    id: UUID
+    radiology_id: UUID
     assessed_by: int
     assessed_at: datetime
     has_diagnosis: bool
