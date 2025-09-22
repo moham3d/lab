@@ -139,6 +139,379 @@ if (typeof Alpine !== 'undefined') {
     },
 
     removeNotification(id) {
+      this.notifications = this.notifications.filter(notification => notification.id !== id);
+    },
+
+    clearNotifications() {
+      this.notifications = [];
+    }
+  });
+
+  // Patient management store
+  Alpine.store('patients', {
+    patients: [],
+    currentPatient: null,
+    loading: false,
+    searchResults: [],
+
+    async loadPatients() {
+      this.loading = true;
+      try {
+        const response = await fetch('/api/patients', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          this.patients = await response.json();
+        } else if (response.status === 401) {
+          window.location.href = '/login';
+        } else {
+          this.patients = [];
+        }
+      } catch (error) {
+        console.error('Failed to load patients:', error);
+        this.patients = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async searchPatients(query) {
+      if (!query || query.length < 2) {
+        this.searchResults = [];
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/patients/search?q=${encodeURIComponent(query)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          this.searchResults = await response.json();
+        } else {
+          this.searchResults = [];
+        }
+      } catch (error) {
+        console.error('Failed to search patients:', error);
+        this.searchResults = [];
+      }
+    },
+
+    async getPatient(ssn) {
+      try {
+        const response = await fetch(`/api/patients/${ssn}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          this.currentPatient = await response.json();
+          return this.currentPatient;
+        } else {
+          this.currentPatient = null;
+          return null;
+        }
+      } catch (error) {
+        console.error('Failed to get patient:', error);
+        this.currentPatient = null;
+        return null;
+      }
+    },
+
+    validateSSN(ssn) {
+      // Egyptian SSN validation (14 digits)
+      return /^\d{14}$/.test(ssn);
+    },
+
+    validateMobile(mobile) {
+      // Egyptian mobile number validation (01xxxxxxxxx)
+      return /^01[0-2]\d{8}$/.test(mobile);
+    }
+  });
+
+  // Visit management store
+  Alpine.store('visits', {
+    visits: [],
+    currentVisit: null,
+    loading: false,
+    stats: {
+      today: 0,
+      inProgress: 0,
+      completed: 0,
+      cancelled: 0
+    },
+
+    async loadVisits() {
+      this.loading = true;
+      try {
+        const response = await fetch('/api/visits', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          this.visits = await response.json();
+          this.calculateStats();
+        } else if (response.status === 401) {
+          window.location.href = '/login';
+        } else {
+          this.visits = [];
+        }
+      } catch (error) {
+        console.error('Failed to load visits:', error);
+        this.visits = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    calculateStats() {
+      const today = new Date().toISOString().split('T')[0];
+      
+      this.stats.today = this.visits.filter(v => v.visit_date === today).length;
+      this.stats.inProgress = this.visits.filter(v => v.status === 'in_progress').length;
+      this.stats.completed = this.visits.filter(v => v.status === 'completed').length;
+      this.stats.cancelled = this.visits.filter(v => v.status === 'cancelled').length;
+    },
+
+    async updateVisitStatus(visitId, newStatus) {
+      try {
+        const response = await fetch(`/api/visits/${visitId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+          await this.loadVisits();
+          return true;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        console.error('Failed to update visit status:', error);
+        return false;
+      }
+    }
+  });
+
+  // Medical validation utilities
+  Alpine.store('medical', {
+    // Vital signs validation
+    isValidTemperature(temp) {
+      return temp >= 30 && temp <= 45;
+    },
+
+    isNormalTemperature(temp) {
+      return temp >= 36.1 && temp <= 37.2;
+    },
+
+    isValidPulse(pulse) {
+      return pulse >= 30 && pulse <= 200;
+    },
+
+    isNormalPulse(pulse) {
+      return pulse >= 60 && pulse <= 100;
+    },
+
+    isValidBloodPressureSystolic(systolic) {
+      return systolic >= 70 && systolic <= 250;
+    },
+
+    isNormalBloodPressureSystolic(systolic) {
+      return systolic >= 90 && systolic <= 140;
+    },
+
+    isValidBloodPressureDiastolic(diastolic) {
+      return diastolic >= 40 && diastolic <= 150;
+    },
+
+    isNormalBloodPressureDiastolic(diastolic) {
+      return diastolic >= 60 && diastolic <= 90;
+    },
+
+    isValidRespiratoryRate(rate) {
+      return rate >= 8 && rate <= 40;
+    },
+
+    isNormalRespiratoryRate(rate) {
+      return rate >= 12 && rate <= 20;
+    },
+
+    isValidOxygenSaturation(sat) {
+      return sat >= 70 && sat <= 100;
+    },
+
+    isNormalOxygenSaturation(sat) {
+      return sat >= 95 && sat <= 100;
+    },
+
+    // BMI calculation
+    calculateBMI(weight, height) {
+      if (!weight || !height) return null;
+      const heightInMeters = height / 100;
+      return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    },
+
+    getBMICategory(bmi) {
+      if (bmi < 18.5) return 'Underweight';
+      if (bmi < 25) return 'Normal weight';
+      if (bmi < 30) return 'Overweight';
+      return 'Obese';
+    }
+  });
+
+  // Form utilities
+  Alpine.store('forms', {
+    drafts: {},
+
+    saveDraft(formName, data) {
+      try {
+        this.drafts[formName] = data;
+        localStorage.setItem(`draft_${formName}`, JSON.stringify(data));
+      } catch (error) {
+        console.error('Failed to save draft:', error);
+      }
+    },
+
+    loadDraft(formName) {
+      try {
+        const draft = localStorage.getItem(`draft_${formName}`);
+        if (draft) {
+          this.drafts[formName] = JSON.parse(draft);
+          return this.drafts[formName];
+        }
+        return null;
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+        return null;
+      }
+    },
+
+    clearDraft(formName) {
+      try {
+        delete this.drafts[formName];
+        localStorage.removeItem(`draft_${formName}`);
+      } catch (error) {
+        console.error('Failed to clear draft:', error);
+      }
+    },
+
+    validateRequired(fields, data) {
+      const missing = [];
+      fields.forEach(field => {
+        if (!data[field] || data[field] === '') {
+          missing.push(field);
+        }
+      });
+      return missing;
+    }
+  });
+}
+
+// Utility functions
+window.utils = {
+  formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  },
+
+  formatTime(timeStr) {
+    if (!timeStr) return '';
+    return timeStr;
+  },
+
+  formatDateTime(dateTimeStr) {
+    if (!dateTimeStr) return '';
+    const date = new Date(dateTimeStr);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  },
+
+  calculateAge(birthDate) {
+    if (!birthDate) return null;
+    
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  },
+
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  },
+
+  // Egyptian SSN validation
+  validateSSN(ssn) {
+    return /^\d{14}$/.test(ssn);
+  },
+
+  // Egyptian mobile validation
+  validateMobile(mobile) {
+    return /^01[0-2]\d{8}$/.test(mobile);
+  },
+
+  // API request helper
+  async apiRequest(url, options = {}) {
+    const defaultOptions = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        ...options.headers
+      }
+    };
+
+    try {
+      const response = await fetch(url, { ...defaultOptions, ...options });
+      
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return null;
+      }
+
+      return response;
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  }
+};
+
+    removeNotification(id) {
       this.notifications = this.notifications.filter((n) => n.id !== id);
     },
 
