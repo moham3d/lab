@@ -9,7 +9,7 @@
 **Budget:** [To be estimated based on team size]  
 
 ### Objectives
-- Build a production-ready HTMX frontend for patient visit management
+- Build a production-ready frontend for patient visit management
 - Integrate with existing FastAPI backend
 - Provide role-based interfaces for nurses, physicians, and admins
 - Ensure medical-grade UI/UX with accessibility compliance
@@ -36,9 +36,7 @@
 - All forms functional with auto-save and validation
 - <2 second page load times
 - WCAG 2.1 AA accessibility compliance
-- 95%+ test coverage
 - Successful integration with existing API
-- User acceptance testing passed
 
 ## 1. Project Timeline
 
@@ -199,8 +197,8 @@
 
 **Deliverables:** Complete reporting system with dashboards, exports, and print functionality
 
-### Phase 6: Admin Interface & Testing (Week 8, 5 days, 40 hours)
-**Objective:** Build admin tools and comprehensive testing
+### Phase 6: Admin Interface (Week 8, 5 days, 40 hours)
+**Objective:** Build admin tools and system management
 
 **Tasks:**
 1. **Admin Data Management** (2 days)
@@ -209,20 +207,13 @@
    - Implement bulk operations for data management
    - Add audit trail viewing
 
-2. **System Administration** (1 day)
+2. **System Administration** (3 days)
    - Build system configuration interface
    - Create backup and restore functionality
    - Implement system health monitoring
    - Add performance metrics dashboard
 
-3. **Testing & Quality Assurance** (2 days)
-   - Write unit tests for components
-   - Create integration tests with API
-   - Perform accessibility testing (WCAG 2.1 AA)
-   - Conduct cross-browser testing
-   - Execute performance testing and optimization
-
-**Deliverables:** Complete admin interface, comprehensive test suite, performance optimized application
+**Deliverables:** Complete admin interface, system management tools
 
 ## 3. Milestone Plan
 
@@ -233,9 +224,8 @@
 | **M3: Patient Management Complete** | End Week 4 | Patient CRUD, search, visit management | Full patient lifecycle management working |
 | **M4: Forms Complete** | End Week 6 | Nursing and radiology forms fully functional | All form fields working with validation and auto-save |
 | **M5: Reports Complete** | End Week 7 | Dashboards and reporting system | All reports generating correctly with exports |
-| **M6: Admin Interface Complete** | Mid Week 8 | Admin CRUD and system management | All admin functions operational |
-| **M7: Testing Complete** | End Week 8 | Full test coverage, QA passed | 95%+ test coverage, no critical bugs |
-| **M8: Deployment Ready** | End Week 8 | Production deployment, documentation | Application deployed and documented |
+| **M6: Admin Interface Complete** | End Week 8 | Admin CRUD and system management | All admin functions operational |
+| **M7: Deployment Ready** | End Week 8 | Production deployment, documentation | Application deployed and documented |
 
 ## 4. Resource Plan
 
@@ -248,17 +238,12 @@
   - Skills: Medical interface design, accessibility, responsive design
   - Experience: Healthcare software design preferred
 
-- **QA Tester** (Part-time): 2 weeks (Weeks 7-8)
-  - Skills: Manual testing, accessibility testing, cross-browser testing
-  - Tools: Browser dev tools, accessibility checkers
-
 - **DevOps Engineer** (Consulting): 1 week (Week 8)
   - Skills: Static site deployment, CDN configuration, monitoring
   - Experience: Production deployment of SPAs
 
 ### Tools & Infrastructure
 - **Development Tools:** VS Code, Git, npm/yarn
-- **Testing Tools:** Jest, Testing Library, Cypress (optional)
 - **Design Tools:** Figma, Adobe XD
 - **Deployment:** Netlify/Vercel, Cloudflare CDN
 - **Monitoring:** Google Analytics, Sentry for error tracking
@@ -267,8 +252,7 @@
 - **Personnel:** $15,000 - $25,000 (based on location and experience)
 - **Tools & Software:** $500 - $1,000
 - **Infrastructure:** $200 - $500/month
-- **Testing & QA:** $2,000 - $5,000
-- **Total Estimate:** $17,700 - $31,500
+- **Total Estimate:** $15,700 - $26,500
 
 ## 5. Risk Assessment
 
@@ -293,59 +277,11 @@
 | Third-party Dependencies | Low | Low | Audit dependencies for security, keep versions updated, have fallback plans |
 | Deployment Issues | Low | Low | Plan deployment early, use staging environment, have rollback procedures |
 
-## 6. Testing Strategy
-
-### Testing Levels
-1. **Unit Testing** (Component Level)
-   - Test individual HTMX components and Alpine.js functionality
-   - Mock API calls for isolated testing
-   - Test form validation logic
-   - Coverage target: 80%+
-
-2. **Integration Testing** (API Integration)
-   - Test HTMX requests and responses
-   - Verify JWT token handling
-   - Test role-based access control
-   - Validate data flow between frontend and backend
-
-3. **End-to-End Testing** (User Workflows)
-   - Complete user journeys (login → patient search → form completion)
-   - Test form auto-save functionality
-   - Verify export and print features
-   - Cross-browser compatibility testing
-
-### Accessibility Testing
-- **Automated Testing:** Use axe-core, WAVE, or Lighthouse
-- **Manual Testing:** Screen reader testing (NVDA, JAWS)
-- **Keyboard Navigation:** Test all interactions without mouse
-- **Color Contrast:** Verify WCAG 2.1 AA compliance
-- **Target:** 100% WCAG 2.1 AA compliance
-
-### Performance Testing
-- **Load Testing:** Simulate multiple concurrent users
-- **Page Load Times:** Target <2 seconds for initial load
-- **Form Responsiveness:** Auto-save within 2 seconds of input
-- **Memory Usage:** Monitor for memory leaks in long sessions
-
-### Test Environment
-- **Development:** Local environment with mocked API
-- **Staging:** Full integration environment matching production
-- **Production:** Monitoring and A/B testing capabilities
-
-### QA Process
-1. **Code Review:** Peer review for all code changes
-2. **Automated Testing:** Run on every commit
-3. **Manual Testing:** Weekly testing cycles
-4. **User Acceptance Testing:** Healthcare staff testing
-5. **Accessibility Audit:** Third-party accessibility review
-
-## 7. Deployment Plan
+## 6. Deployment Plan
 
 ### Pre-Deployment Checklist
-- [ ] All tests passing (unit, integration, e2e)
 - [ ] Accessibility compliance verified
 - [ ] Performance benchmarks met
-- [ ] Cross-browser testing completed
 - [ ] Security audit passed
 - [ ] Documentation updated
 - [ ] Backup procedures tested
@@ -389,8 +325,8 @@
   - Disaster recovery plan
 
 ### Go-Live Plan
-1. **Week 8, Day 1-2:** Final testing and bug fixes
-2. **Week 8, Day 3:** Staging deployment and UAT
+1. **Week 8, Day 1-2:** Final review and bug fixes
+2. **Week 8, Day 3:** Staging deployment and user review
 3. **Week 8, Day 4:** Production deployment ( gradual rollout)
 4. **Week 8, Day 5:** Monitoring and support
 
