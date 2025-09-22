@@ -17,8 +17,8 @@ INSERT INTO patient_visits (patient_ssn, visit_date, visit_status, primary_diagn
 ('12345678901234', CURRENT_TIMESTAMP - INTERVAL '2 days', 'completed', 'Hypertension', 'Type 2 Diabetes', 'I10', 'outpatient', 'Cardiology', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'Patient responded well to medication. Follow up in 3 months.'),
 ('23456789012345', CURRENT_TIMESTAMP - INTERVAL '1 day', 'in_progress', 'Acute Bronchitis', NULL, 'J20.9', 'outpatient', 'Pulmonology', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'Prescribed antibiotics and cough syrup. Monitor symptoms.'),
 ('34567890123456', CURRENT_TIMESTAMP, 'open', 'Knee Osteoarthritis', NULL, 'M17.9', 'outpatient', 'Orthopedics', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'Recommended physical therapy and pain management.'),
-('45678901234567', CURRENT_TIMESTAMP + INTERVAL '1 day', 'scheduled', 'Routine Checkup', NULL, 'Z00.00', 'outpatient', 'General Medicine', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'Annual health checkup appointment.'),
-('56789012345678', CURRENT_TIMESTAMP + INTERVAL '2 days', 'scheduled', 'Dental Caries', NULL, 'K02.9', 'outpatient', 'Dentistry', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'Multiple cavities detected. Needs dental work.');
+('45678901234567', CURRENT_TIMESTAMP + INTERVAL '1 day', 'open', 'Routine Checkup', NULL, 'Z00.00', 'outpatient', 'General Medicine', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'Annual health checkup appointment.'),
+('56789012345678', CURRENT_TIMESTAMP + INTERVAL '2 days', 'open', 'Dental Caries', NULL, 'K02.9', 'outpatient', 'Dentistry', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'fa0038a5-85b1-44ef-a18e-98f71835ad2f', 'Multiple cavities detected. Needs dental work.');
 
 -- Insert form submissions (linking visits to forms)
 INSERT INTO form_submissions (visit_id, form_id, submitted_by, submission_status) VALUES
