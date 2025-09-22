@@ -24,6 +24,17 @@ async def execute_schema():
             schema_sql = f.read()
         await conn.execute(schema_sql)
         print("Database tables created successfully")
+
+        # Execute mock data if file exists
+        try:
+            with open("app/db/mock.sql", "r") as f:
+                mock_sql = f.read()
+            await conn.execute(mock_sql)
+            print("Mock data inserted successfully")
+        except FileNotFoundError:
+            print("Mock data file not found, skipping")
+        except Exception as e:
+            print(f"Error inserting mock data: {e}")
     finally:
         await conn.close()
 

@@ -32,12 +32,12 @@ app.use('/api', createProxyMiddleware({
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 app.get('*', (req, res, next) => {
-    // If the request has an extension or is for /src, let static middleware handle it
-    if (req.path.includes('.') || req.path.startsWith('/src')) {
+    // If the request has an extension and is not an HTML file, or is for /src, let static middleware handle it
+    if ((req.path.includes('.') && !req.path.endsWith('.html')) || req.path.startsWith('/src')) {
         return next();
     }
 
-    // For SPA routes, always serve the main app (index.html)
+    // For SPA routes and HTML files, always serve the main app (index.html)
     // The client-side router will handle authentication and page loading
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

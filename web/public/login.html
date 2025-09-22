@@ -24,29 +24,20 @@
                 console.log('Login with:', this.username, this.password);
                 
                 try {
-                    const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: this.username,
-                            password: this.password,
-                        }),
+                    const result = await Alpine.store('auth').login({
+                        username: this.username,
+                        password: this.password,
                     });
 
-                    if (!response.ok) {
-                        throw new Error('Login failed');
+                    if (result.success) {
+                        // Dispatch login event
+                        document.dispatchEvent(new CustomEvent('auth:login'));
+                        
+                        // Navigate to dashboard
+                        window.location.href = '/dashboard.html';
+                    } else {
+                        this.error = 'Login failed. Please check your credentials.';
                     }
-
-                    const data = await response.json();
-                    localStorage.setItem('auth_token', data.access_token);
-                    
-                    // Dispatch login event
-                    document.dispatchEvent(new CustomEvent('auth:login'));
-                    
-                    // Navigate to dashboard
-                    window.location.href = '/dashboard.html';
                 } catch (error) {
                     console.error('Login error:', error);
                     this.error = 'Login failed. Please check your credentials.';

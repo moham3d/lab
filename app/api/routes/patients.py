@@ -51,6 +51,18 @@ async def create_patient(
     await db.refresh(patient)
     return patient
 
+@router.get("/", response_model=List[PatientResponse])
+async def list_patients(
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List all patients with pagination."""
+    result = await db.execute(select(Patient).offset(skip).limit(limit))
+    patients = result.scalars().all()
+    return patients
+
 @router.get("/{ssn}", response_model=PatientResponse)
 async def get_patient(
     ssn: str,
