@@ -5,8 +5,10 @@
 -- ===================================================================
 
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp-- Insert initial users
+INSERT INTO users (user_id, username, email, full_name, role, password_hash) VALUES
+('550e8400-e29b-41d4-a716-446655440000', 'nurse1', 'nurse1@healthcare.local', 'Nurse One', 'nurse', '$2b$12$9ZC3s9j60.yf7jv7/nc8wOPPTqELayBejnowASyXtTnkL7Cv3BBpO'), -- password: admin
+('550e8400-e29b-41d4-a716-446655440001', 'admin', 'admin@healthcare.local', 'System Administrator', 'admin', '$2b$12$9ZC3s9j60.yf7jv7/nc8wOPPTqELayBejnowASyXtTnkL7Cv3BBpO'); -- password: admin
 -- ===================================================================
 -- CORE TABLES
 -- ===================================================================
