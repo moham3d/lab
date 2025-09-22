@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nursing Assessment - Healthcare System</title>
+    <link href="/styles/main.css" rel="stylesheet">
+    <script defer src="/vendor/alpine.min.js"></script>
+    <script defer src="/vendor/htmx.min.js"></script>
+    <script defer src="/src/js/main.js"></script>
+</head>
+<body class="h-full bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span class="ml-2 text-xl font-semibold text-gray-900">Healthcare Portal</span>
+                    </div>
+                    <div class="ml-10 flex space-x-8">
+                        <a href="/dashboard" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                        <a href="/patients" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Patients</a>
+                        <a href="/visits" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Visits</a>
+                        <a href="/forms" class="text-blue-600 border-b-2 border-blue-600 px-3 py-2 text-sm font-medium">Forms</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <div class="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
+                                <span class="text-sm font-medium text-white" x-text="$store.auth.user?.full_name?.charAt(0)?.toUpperCase() || 'U'"></span>
+                            </div>
+                            <span class="ml-2 text-gray-700 text-sm font-medium" x-text="$store.auth.user?.full_name || 'User'"></span>
+                        </button>
+                        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                            <div class="py-1">
+                                <button @click="$store.auth.logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <!-- Nursing Assessment Form -->
+            <div class="max-w-4xl mx-auto" x-data="nursingAssessmentForm()" x-init="initForm()">
+                <!-- Header -->
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900">Nursing Assessment</h1>
+                    <p class="mt-1 text-sm text-gray-600">
+                        Complete the nursing assessment for patient evaluation.
+                    </p>
+                    
+                    <!-- Patient Info -->
+                    <div x-show="patient" class="mt-4 bg-blue-50 border border-blue-200 rounded-md p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">
+                                    Patient: <span x-text="patient?.full_name"></span>
+                                </h3>
+                                <div class="mt-1 text-sm text-blue-700">
+                                    SSN: <span x-text="patient?.ssn"></span> • 
+                                    Age: <span x-text="calculateAge(patient?.date_of_birth)"></span> •
+                                    Gender: <span x-text="patient?.gender"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form @submit.prevent="handleSubmit" class="space-y-8">
+                    <!-- Basic Information -->
+                    <div class="card">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Assessment Information</h3>
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div class="form-group">
+                                <label for="assessment_date" class="label">Assessment Date & Time *</label>
+                                <input
+                                    type="datetime-local"
+                                    id="assessment_date"
+                                    name="assessment_date"
+                                    required
+                                    class="input-field"
+                                    :class="errors.assessment_date ? 'border-red-300' : ''"
+                                    x-model="form.assessment_date"
+                                    :disabled="loading"
+                                >
+                                <div x-show="errors.assessment_date" class="error-message" x-text="errors.assessment_date"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="chief_complaint" class="label">Chief Complaint *</label>
+                                <input
+                                    type="text"
+                                    id="chief_complaint"
+                                    name="chief_complaint"
+                                    required
+                                    class="input-field"
+                                    :class="errors.chief_complaint ? 'border-red-300' : ''"
+                                    x-model="form.chief_complaint"
+                                    placeholder="Primary reason for visit"
+                                    :disabled="loading"
+                                >
+                                <div x-show="errors.chief_complaint" class="error-message" x-text="errors.chief_complaint"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vital Signs -->
+                    <div class="card">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Vital Signs</h3>
+                        <div class="vital-signs-grid">
+                            <!-- Temperature -->
+                            <div class="form-group">
+                                <label for="temperature" class="label">Temperature (°C) *</label>
+                                <input
+                                    type="number"
+                                    id="temperature"
+                                    name="temperature"
+                                    step="0.1"
+                                    min="30"
+                                    max="45"
+                                    required
+                                    class="input-field"
+                                    :class="errors.temperature ? 'border-red-300' : ''"
+                                    x-model="form.temperature"
+                                    placeholder="36.5"
+                                    :disabled="loading"
+                                    @input="validateVitalSign('temperature', 30, 45)"
+                                >
+                                <div x-show="errors.temperature" class="error-message" x-text="errors.temperature"></div>
+                                <div class="text-xs text-gray-500 mt-1">Normal: 36.1-37.2°C</div>
+                            </div>
+
+                            <!-- Pulse -->
+                            <div class="form-group">
+                                <label for="pulse" class="label">Pulse (bpm) *</label>
+                                <input
+                                    type="number"
+                                    id="pulse"
+                                    name="pulse"
+                                    min="30"
+                                    max="200"
+                                    required
+                                    class="input-field"
+                                    :class="errors.pulse ? 'border-red-300' : ''"
+                                    x-model="form.pulse"
+                                    placeholder="72"
+                                    :disabled="loading"
+                                    @input="validateVitalSign('pulse', 30, 200)"
+                                >
+                                <div x-show="errors.pulse" class="error-message" x-text="errors.pulse"></div>
+                                <div class="text-xs text-gray-500 mt-1">Normal: 60-100 bpm</div>
+                            </div>
+
+                            <!-- Blood Pressure -->
+                            <div class="form-group">
+                                <label for="systolic_bp" class="label">Blood Pressure *</label>
+                                <div class="flex space-x-2">
+                                    <input
+                                        type="number"
+                                        id="systolic_bp"
+                                        name="systolic_bp"
+                                        min="70"
+                                        max="250"
+                                        required
+                                        class="input-field"
+                                        :class="errors.systolic_bp ? 'border-red-300' : ''"
+                                        x-model="form.systolic_bp"
+                                        placeholder="120"
+                                        :disabled="loading"
+                                        @input="validateVitalSign('systolic_bp', 70, 250)"
+                                    >
+                                    <span class="text-gray-500 self-center">/</span>
+                                    <input
+                                        type="number"
+                                        id="diastolic_bp"
+                                        name="diastolic_bp"
+                                        min="40"
+                                        max="150"
+                                        required
+                                        class="input-field"
+                                        :class="errors.diastolic_bp ? 'border-red-300' : ''"
+                                        x-model="form.diastolic_bp"
+                                        placeholder="80"
+                                        :disabled="loading"
+                                        @input="validateVitalSign('diastolic_bp', 40, 150)"
+                                    >
+                                </div>
+                                <div x-show="errors.systolic_bp || errors.diastolic_bp" class="error-message">
+                                    <div x-show="errors.systolic_bp" x-text="errors.systolic_bp"></div>
+                                    <div x-show="errors.diastolic_bp" x-text="errors.diastolic_bp"></div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">Normal: 90-120/60-80 mmHg</div>
+                            </div>
+
+                            <!-- Respiratory Rate -->
+                            <div class="form-group">
+                                <label for="respiratory_rate" class="label">Respiratory Rate *</label>
+                                <input
+                                    type="number"
+                                    id="respiratory_rate"
+                                    name="respiratory_rate"
+                                    min="8"
+                                    max="40"
+                                    required
+                                    class="input-field"
+                                    :class="errors.respiratory_rate ? 'border-red-300' : ''"
+                                    x-model="form.respiratory_rate"
+                                    placeholder="16"
+                                    :disabled="loading"
+                                    @input="validateVitalSign('respiratory_rate', 8, 40)"
+                                >
+                                <div x-show="errors.respiratory_rate" class="error-message" x-text="errors.respiratory_rate"></div>
+                                <div class="text-xs text-gray-500 mt-1">Normal: 12-20 breaths/min</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="card">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Notes</h3>
+                        <div class="form-group">
+                            <label for="notes" class="label">Nursing Notes</label>
+                            <textarea
+                                id="notes"
+                                name="notes"
+                                rows="4"
+                                class="input-field"
+                                x-model="form.notes"
+                                placeholder="Additional observations, patient concerns, care plan notes, etc."
+                                :disabled="loading"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-3">
+                        <button
+                            type="button"
+                            @click="handleCancel"
+                            class="btn-secondary"
+                            :disabled="loading"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            class="btn-primary"
+                            :disabled="loading || !isFormValid"
+                        >
+                            <span x-show="loading" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                            <span x-text="loading ? 'Submitting...' : 'Submit Assessment'"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function nursingAssessmentForm() {
+            return {
+                patient: null,
+                form: {
+                    patient_ssn: '',
+                    visit_id: '',
+                    assessment_date: '',
+                    chief_complaint: '',
+                    temperature: '',
+                    pulse: '',
+                    systolic_bp: '',
+                    diastolic_bp: '',
+                    respiratory_rate: '',
+                    notes: ''
+                },
+                loading: false,
+                errors: {},
+
+                get isFormValid() {
+                    return this.form.assessment_date && 
+                           this.form.chief_complaint &&
+                           this.form.temperature &&
+                           this.form.pulse &&
+                           this.form.systolic_bp &&
+                           this.form.diastolic_bp &&
+                           this.form.respiratory_rate &&
+                           Object.keys(this.errors).length === 0;
+                },
+
+                initForm() {
+                    // Set default assessment date to now
+                    this.form.assessment_date = new Date().toISOString().slice(0, 16);
+                    
+                    // Get patient SSN and visit ID from URL parameters
+                    const urlParams = new URLSearchParams(window.location.search);
+                    this.form.patient_ssn = urlParams.get('patient_ssn') || '';
+                    this.form.visit_id = urlParams.get('visit_id') || '';
+                    
+                    if (this.form.patient_ssn) {
+                        this.loadPatient();
+                    }
+                },
+
+                async loadPatient() {
+                    try {
+                        const response = await fetch(`/api/patients/${this.form.patient_ssn}`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            this.patient = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error loading patient:', error);
+                    }
+                },
+
+                validateVitalSign(field, min, max) {
+                    this.clearFieldError(field);
+                    const value = parseFloat(this.form[field]);
+                    
+                    if (value && (value < min || value > max)) {
+                        this.errors[field] = `Value must be between ${min} and ${max}`;
+                    }
+                },
+
+                clearFieldError(field) {
+                    if (this.errors[field]) {
+                        delete this.errors[field];
+                    }
+                },
+
+                validateForm() {
+                    this.errors = {};
+                    
+                    // Required fields
+                    if (!this.form.assessment_date) {
+                        this.errors.assessment_date = 'Assessment date is required';
+                    }
+
+                    if (!this.form.chief_complaint.trim()) {
+                        this.errors.chief_complaint = 'Chief complaint is required';
+                    }
+
+                    // Vital signs validation
+                    this.validateVitalSign('temperature', 30, 45);
+                    this.validateVitalSign('pulse', 30, 200);
+                    this.validateVitalSign('systolic_bp', 70, 250);
+                    this.validateVitalSign('diastolic_bp', 40, 150);
+                    this.validateVitalSign('respiratory_rate', 8, 40);
+
+                    return Object.keys(this.errors).length === 0;
+                },
+
+                async handleSubmit() {
+                    if (!this.validateForm()) return;
+
+                    this.loading = true;
+                    
+                    try {
+                        const formData = { ...this.form, status: 'completed' };
+                        
+                        const response = await fetch('/api/forms/nursing-assessment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            if (Alpine.store && Alpine.store('ui')) {
+                                Alpine.store('ui').showNotification('Assessment submitted successfully!', 'success');
+                            }
+                            
+                            // Navigate back to visit or patient
+                            if (this.form.visit_id) {
+                                window.location.href = `/visits/${this.form.visit_id}`;
+                            } else if (this.form.patient_ssn) {
+                                window.location.href = `/patients/${this.form.patient_ssn}`;
+                            } else {
+                                window.location.href = '/dashboard';
+                            }
+                        } else {
+                            throw new Error(data.detail || 'Failed to submit assessment');
+                        }
+                    } catch (error) {
+                        console.error('Error submitting assessment:', error);
+                        if (Alpine.store && Alpine.store('ui')) {
+                            Alpine.store('ui').showNotification(error.message, 'error');
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                handleCancel() {
+                    if (this.form.visit_id) {
+                        window.location.href = `/visits/${this.form.visit_id}`;
+                    } else if (this.form.patient_ssn) {
+                        window.location.href = `/patients/${this.form.patient_ssn}`;
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                },
+
+                calculateAge(dateOfBirth) {
+                    if (!dateOfBirth) return 'Unknown';
+                    const today = new Date();
+                    const birthDate = new Date(dateOfBirth);
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    
+                    return age;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

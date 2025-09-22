@@ -1,0 +1,509 @@
+/**
+ * Healthcare Frontend - Main JavaScript
+ * Alpine.js stores and utilities for patient management system
+ */
+
+// Alpine.js stores for global state management
+if (typeof Alpine !== 'undefined') {
+  // Authentication store
+  Alpine.store('auth', {
+    user: null,
+    token: localStorage.getItem('auth_token'),
+    role: null,
+    isAuthenticated: false,
+
+    async init() {
+      if (this.token) {
+        await this.validateToken();
+      } else {
+        // No token, user is not authenticated
+        this.isAuthenticated = false;
+      }
+    },
+
+    async login(credentials) {
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+        });
+
+        if (!response.ok) {
+          throw new Error('Login failed');
+        }
+
+        const data = await response.json();
+        this.setAuth(data, data.access_token);
+        return { success: true };
+      } catch (error) {
+        console.error('Login error:', error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    async logout() {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+
+      this.clearAuth();
+      window.location.href = '/login';
+    },
+
+    setAuth(data, token) {
+      this.user = data.user || { username: data.username || 'user', role: 'user' };
+      this.token = token;
+      this.role = this.user.role;
+      this.isAuthenticated = true;
+      localStorage.setItem('auth_token', token);
+
+      // Update HTMX headers
+      if (typeof htmx !== 'undefined') {
+        htmx.ajax = htmx.ajax || {};
+        htmx.ajax.headers = {
+          Authorization: `Bearer ${token}`,
+        };
+      }
+    },
+
+    clearAuth() {
+      this.user = null;
+      this.token = null;
+      this.role = null;
+      this.isAuthenticated = false;
+      localStorage.removeItem('auth_token');
+    },
+
+    async validateToken() {
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+
+        if (response.ok) {
+          const user = await response.json();
+          this.setAuth(user, this.token);
+        } else {
+          this.clearAuth();
+        }
+      } catch (error) {
+        console.error('Token validation error:', error);
+        this.clearAuth();
+      }
+    },
+
+    hasRole(role) {
+      return this.role === role;
+    },
+
+    hasAnyRole(roles) {
+      return roles.includes(this.role);
+    },
+  });
+
+  // UI store for global UI state
+  Alpine.store('ui', {
+    loading: false,
+    notifications: [],
+
+    setLoading(state) {
+      this.loading = state;
+    },
+
+    showNotification(message, type = 'info', duration = 5000) {
+      const id = Date.now();
+      this.notifications.push({
+        id,
+        message,
+        type,
+        duration,
+      });
+
+      if (duration > 0) {
+        setTimeout(() => {
+          this.removeNotification(id);
+        }, duration);
+      }
+    },
+
+    removeNotification(id) {
+      this.notifications = this.notifications.filter((n) => n.id !== id);
+    },
+
+    clearNotifications() {
+      this.notifications = [];
+    },
+  });
+
+  // Patient store for current patient context
+  Alpine.store('patient', {
+    current: null,
+    searchResults: [],
+    loading: false,
+
+    setCurrent(patient) {
+      this.current = patient;
+    },
+
+    clearCurrent() {
+      this.current = null;
+    },
+
+    async search(query) {
+      this.loading = true;
+      try {
+        const response = await fetch(
+          `/api/patients/search?q=${encodeURIComponent(query)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${Alpine.store('auth').token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          this.searchResults = await response.json();
+        } else {
+          this.searchResults = [];
+        }
+      } catch (error) {
+        console.error('Patient search error:', error);
+        this.searchResults = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+  });
+
+  // Form store for dynamic forms
+  Alpine.store('form', {
+    data: {},
+    errors: {},
+    loading: false,
+
+    init(formData = {}) {
+      this.data = { ...formData };
+      this.errors = {};
+      this.loading = false;
+    },
+
+    setField(field, value) {
+      this.data[field] = value;
+      // Clear field error when user starts typing
+      if (this.errors[field]) {
+        delete this.errors[field];
+      }
+    },
+
+    setErrors(errors) {
+      this.errors = errors;
+    },
+
+    validate() {
+      // Basic validation - extend as needed
+      const errors = {};
+
+      // Add field-specific validation here
+
+      this.errors = errors;
+      return Object.keys(errors).length === 0;
+    },
+
+    async submit(url, method = 'POST') {
+      if (!this.validate()) {
+        return { success: false, errors: this.errors };
+      }
+
+      this.loading = true;
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${Alpine.store('auth').token}`,
+          },
+          body: JSON.stringify(this.data),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          return { success: true, data: result };
+        } else {
+          this.setErrors(result.detail || result);
+          return { success: false, errors: this.errors };
+        }
+      } catch (error) {
+        console.error('Form submission error:', error);
+        return { success: false, error: error.message };
+      } finally {
+        this.loading = false;
+      }
+    },
+  });
+}
+
+// Utility functions
+window.HealthcareUtils = {
+  // Format date for display
+  formatDate(dateString, options = {}) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      ...options,
+    });
+  },
+
+  // Format date and time
+  formatDateTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  },
+
+  // Format phone number
+  formatPhone(phone) {
+    if (!phone) return '';
+    // Egyptian phone format: +20 XXX XXX XXXX
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 11 && cleaned.startsWith('01')) {
+      return `+20 ${cleaned.slice(1, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+    }
+    return phone;
+  },
+
+  // Format SSN (Egyptian format)
+  formatSSN(ssn) {
+    if (!ssn) return '';
+    // Egyptian SSN format: XXX-XX-XXXX-XXXXXX
+    const cleaned = ssn.replace(/\D/g, '');
+    if (cleaned.length === 14) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5, 9)}-${cleaned.slice(9)}`;
+    }
+    return ssn;
+  },
+
+  // Calculate age from birth date
+  calculateAge(birthDate) {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  },
+
+  // Validate vital signs ranges
+  validateVitalSigns(vitals) {
+    const ranges = {
+      temperature: { min: 30, max: 45 }, // Celsius
+      pulse: { min: 30, max: 200 }, // bpm
+      bloodPressureSystolic: { min: 70, max: 250 }, // mmHg
+      bloodPressureDiastolic: { min: 40, max: 150 }, // mmHg
+      respiration: { min: 8, max: 60 }, // breaths/min
+      oxygenSaturation: { min: 70, max: 100 }, // %
+      weight: { min: 1, max: 300 }, // kg
+      height: { min: 30, max: 250 }, // cm
+    };
+
+    const errors = {};
+
+    Object.keys(vitals).forEach((key) => {
+      const value = parseFloat(vitals[key]);
+      if (ranges[key] && !isNaN(value)) {
+        if (value < ranges[key].min || value > ranges[key].max) {
+          errors[key] =
+            `Value must be between ${ranges[key].min} and ${ranges[key].max}`;
+        }
+      }
+    });
+
+    return errors;
+  },
+
+  // Debounce function for search inputs
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  },
+
+  // Show loading spinner
+  showLoading() {
+    Alpine.store('ui').setLoading(true);
+  },
+
+  // Hide loading spinner
+  hideLoading() {
+    Alpine.store('ui').setLoading(false);
+  },
+
+  // Show success notification
+  showSuccess(message) {
+    Alpine.store('ui').showNotification(message, 'success');
+  },
+
+  // Show error notification
+  showError(message) {
+    Alpine.store('ui').showNotification(message, 'error');
+  },
+
+  // Confirm dialog
+  async confirm(message) {
+    return window.confirm(message);
+  },
+};
+
+// HTMX configuration
+document.addEventListener('DOMContentLoaded', function () {
+  // Configure HTMX
+  htmx.config.globalViewTransitions = true;
+  htmx.config.useTemplateFragments = true;
+
+  // Add loading indicators
+  document.body.addEventListener('htmx:beforeRequest', function (evt) {
+    HealthcareUtils.showLoading();
+  });
+
+  document.body.addEventListener('htmx:afterRequest', function (evt) {
+    HealthcareUtils.hideLoading();
+  });
+
+  // Handle HTMX errors
+  document.body.addEventListener('htmx:responseError', function (evt) {
+    const error = evt.detail.xhr.responseText || 'An error occurred';
+    HealthcareUtils.showError(error);
+  });
+
+  // Handle authentication errors
+  document.body.addEventListener('htmx:responseError', function (evt) {
+    if (evt.detail.xhr.status === 401) {
+      Alpine.store('auth').clearAuth();
+      window.location.href = '/login';
+    }
+  });
+});
+
+// Alpine components registered globally so SPA-injected pages work
+document.addEventListener('alpine:init', () => {
+  // Dashboard component
+  Alpine.data('dashboard', () => ({
+    stats: {
+      totalPatients: 0,
+      todayVisits: 0,
+      pendingAssessments: 0,
+      weekVisits: 0,
+    },
+    recentActivity: [],
+
+    async init() {
+      await this.loadStats();
+      await this.loadRecentActivity();
+    },
+
+    async loadStats() {
+      try {
+        const response = await fetch('/api/dashboard/stats', {
+          headers: {
+            Authorization: `Bearer ${Alpine.store('auth').token}`,
+          },
+        });
+
+        if (response.ok) {
+          this.stats = await response.json();
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard stats:', error);
+      }
+    },
+
+    async loadRecentActivity() {
+      try {
+        const response = await fetch('/api/dashboard/activity', {
+          headers: {
+            Authorization: `Bearer ${Alpine.store('auth').token}`,
+          },
+        });
+
+        if (response.ok) {
+          this.recentActivity = await response.json();
+        }
+      } catch (error) {
+        console.error('Failed to load recent activity:', error);
+      }
+    },
+  }));
+
+  // Patients page component
+  Alpine.data('patientsPage', () => ({
+    patients: [],
+    loading: true,
+    searchQuery: '',
+
+    async init() {
+      await this.loadPatients();
+    },
+
+    async loadPatients() {
+      this.loading = true;
+      try {
+        const response = await fetch('/api/patients', {
+          headers: {
+            Authorization: `Bearer ${Alpine.store('auth').token}`,
+          },
+        });
+
+        if (response.ok) {
+          this.patients = await response.json();
+        } else if (response.status === 401) {
+          Alpine.store('auth').clearAuth();
+          window.location.href = '/login';
+        } else {
+          this.patients = [];
+        }
+      } catch (error) {
+        console.error('Failed to load patients:', error);
+        this.patients = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    debouncedSearch() {
+      // Simple placeholder for search; enhance later
+      console.log('Searching for:', this.searchQuery);
+    },
+  }));
+});

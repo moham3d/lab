@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Login - Patient Management System</title>
+    <link href="/styles/main.css" rel="stylesheet">
+    <script defer src="/vendor/alpine.min.js"></script>
+    <script defer src="/vendor/htmx.min.js"></script>
+    <script defer src="/src/js/main.js"></script>
+</head>
+<body class="h-full bg-gray-50">
+    <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8" x-data="{
+            username: '',
+            password: '',
+            loading: false,
+            error: '',
+            
+            async login() {
+                this.loading = true;
+                this.error = '';
+                
+                console.log('Login with:', this.username, this.password);
+                
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: this.username,
+                            password: this.password,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Login failed');
+                    }
+
+                    const data = await response.json();
+                    localStorage.setItem('auth_token', data.access_token);
+                    
+                    // Dispatch login event
+                    document.dispatchEvent(new CustomEvent('auth:login'));
+                    
+                    // Navigate to dashboard
+                    window.location.href = '/dashboard';
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.error = 'Login failed. Please check your credentials.';
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }">
+            <!-- Header -->
+            <div>
+                <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
+                    <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    Sign in to Healthcare Portal
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    Access the patient management system
+                </p>
+            </div>
+
+            <!-- Login Form -->
+            <form class="mt-8 space-y-6" @submit.prevent="login">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="username" class="sr-only">Username</label>
+                        <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            autocomplete="username"
+                            required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                            placeholder="Username"
+                            x-model="username"
+                        >
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Password</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                            placeholder="Password"
+                            x-model="password"
+                        >
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div x-show="error" x-text="error" class="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button
+                        type="submit"
+                        :disabled="loading"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span x-show="!loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-blue-500 group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <span x-show="loading" class="inline-block w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></span>
+                        <span x-text="loading ? 'Signing in...' : 'Sign in'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
