@@ -12,6 +12,7 @@ class CheckEvalBase(BaseModel):
     blood_pressure_diastolic: Optional[int] = None
     respiratory_rate_per_min: Optional[int] = None
     oxygen_saturation_percent: Optional[Decimal] = None
+    nurse_signature: Optional[str] = None
 
 class CheckEvalCreate(CheckEvalBase):
     visit_id: UUID
@@ -44,90 +45,55 @@ class CheckEvalResponse(CheckEvalBase):
 
 # General Sheet schema
 class GeneralSheetBase(BaseModel):
-    # Preparation details
-    preparation_time: Optional[str] = None
-    injection_time: Optional[str] = None
-    injection_site: Optional[str] = None
-    ctd1vol: Optional[Decimal] = None
-    dlp: Optional[Decimal] = None
-    uses_contrast: Optional[str] = None
-    kidney_function_value: Optional[Decimal] = None
-    
     # Study information
-    is_first_time: Optional[str] = None
-    is_comparison: Optional[str] = None
-    previous_study_code: Optional[str] = None
-    requires_report: Optional[str] = None
-    requires_cd: Optional[str] = None
+    study_reason: Optional[str] = None
+    gypsum_splint: Optional[str] = None
     
-    # Clinical information
-    diagnosis: Optional[str] = None
-    reason_for_study: Optional[str] = None
+    # Medical history
+    chronic_disease: Optional[str] = None
+    chronic_disease_details: Optional[str] = None
+    pacemaker: Optional[str] = None
+    implants: Optional[str] = None
+    implants_details: Optional[str] = None
+    pregnancy: Optional[str] = None
     
-    # Assessment content
-    findings: Optional[str] = None
-    impression: Optional[str] = None
-    recommendations: Optional[str] = None
+    # Symptoms
+    pain_numbness: Optional[str] = None
+    pain_location: Optional[str] = None
+    pain_duration: Optional[str] = None
+    spinal_deformities: Optional[str] = None
+    swelling: Optional[str] = None
+    swelling_location: Optional[str] = None
+    headache: Optional[bool] = None
+    vision_problems: Optional[bool] = None
+    hearing_problems: Optional[bool] = None
+    imbalance: Optional[bool] = None
     
-    # Technical details
-    modality: Optional[str] = None
-    body_region: Optional[str] = None
-    contrast_used: Optional[str] = None
-    
-    # Treatment history
-    has_chemotherapy: Optional[bool] = None
-    chemo_type: Optional[str] = None
-    chemo_details: Optional[str] = None
-    chemo_sessions: Optional[int] = None
-    chemo_last_date: Optional[date] = None
-    has_radiotherapy: Optional[bool] = None
-    radiotherapy_site: Optional[str] = None
-    radiotherapy_sessions: Optional[int] = None
-    radiotherapy_last_date: Optional[date] = None
-    has_hormonal_treatment: Optional[bool] = None
-    hormonal_last_dose_date: Optional[date] = None
-    other_treatments: Optional[str] = None
-    
-    # Previous imaging history
-    has_operations: Optional[bool] = None
-    has_endoscopy: Optional[bool] = None
-    has_biopsies: Optional[bool] = None
-    has_tc_dtpa_kidney_scan: Optional[bool] = None
-    has_tc_mdp_bone_scan: Optional[bool] = None
-    has_mri: Optional[bool] = None
-    has_mammography: Optional[bool] = None
-    has_ct: Optional[bool] = None
-    has_xray: Optional[bool] = None
-    has_ultrasound: Optional[bool] = None
-    has_other_imaging: Optional[bool] = None
-    other_imaging_desc: Optional[str] = None
-    
-    # General sheet additional fields
-    mas: Optional[Decimal] = None
-    kv: Optional[Decimal] = None
-    has_gypsum_splint: Optional[bool] = None
-    has_chronic_disease: Optional[bool] = None
-    chronic_disease_desc: Optional[str] = None
-    has_pacemaker: Optional[bool] = None
-    has_slats_screws_joints: Optional[bool] = None
-    is_pregnant: Optional[bool] = None
-    has_pain_numbness: Optional[bool] = None
-    pain_numbness_desc: Optional[str] = None
-    has_spinal_deformities: Optional[bool] = None
-    has_swelling: Optional[bool] = None
-    swelling_desc: Optional[str] = None
-    has_headache: Optional[bool] = None
-    has_fever: Optional[bool] = None
-    has_tumor_history: Optional[bool] = None
-    tumor_location: Optional[str] = None
-    tumor_type: Optional[str] = None
+    # Additional medical info
+    fever: Optional[str] = None
+    previous_operations: Optional[str] = None
     operation_date: Optional[date] = None
     operation_reason: Optional[str] = None
-    previous_investigation_type: Optional[str] = None
-    previous_investigation_date: Optional[date] = None
-    has_disc_slip: Optional[bool] = None
-    medications_fall_risk: Optional[str] = None
-    current_medications: Optional[str] = None
+    tumor_history: Optional[str] = None
+    tumor_location: Optional[str] = None
+    tumor_type: Optional[str] = None
+    previous_radiology: Optional[str] = None
+    previous_radiology_type: Optional[str] = None
+    previous_radiology_date: Optional[date] = None
+    disc_slip: Optional[str] = None
+    drowsiness_medication: Optional[str] = None
+    current_medication: Optional[str] = None
+    
+    # Technical parameters
+    dlp: Optional[str] = None
+    ctd1vol: Optional[str] = None
+    mas: Optional[str] = None
+    kv: Optional[str] = None
+    
+    # Diagnosis
+    diagnosis: Optional[str] = None
+    
+    # Signatures
     patient_signature: Optional[str] = None
     physician_signature: Optional[str] = None
 

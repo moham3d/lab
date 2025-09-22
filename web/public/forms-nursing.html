@@ -453,6 +453,18 @@
                                     placeholder="Additional clinical observations and assessment notes"
                                 ></textarea>
                             </div>
+
+                            <!-- Nurse Signature -->
+                            <div class="form-group">
+                                <label class="label">Nurse Signature</label>
+                                <div class="border-2 border-dashed border-gray-300 p-4 rounded-lg">
+                                    <canvas id="signature-canvas" width="400" height="150" class="border border-gray-300 bg-white cursor-crosshair"></canvas>
+                                    <div class="mt-2 flex space-x-2">
+                                        <button type="button" @click="clearSignature()" class="btn-secondary text-sm">Clear</button>
+                                        <button type="button" @click="saveSignature()" class="btn-primary text-sm">Save Signature</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -519,7 +531,8 @@
                     general_appearance: '',
                     allergies: '',
                     current_medications: '',
-                    assessment_notes: ''
+                    assessment_notes: '',
+                    nurse_signature: ''
                 },
                 loading: false,
                 autoSave: true,
@@ -539,6 +552,7 @@
                     
                     this.loadDraft();
                     this.setupAutoSave();
+                    this.initSignaturePad();
                 },
 
                 getUrlParameter(name) {
@@ -716,6 +730,28 @@
                     }
                 },
 
+                initSignaturePad() {
+                    const canvas = document.getElementById('signature-canvas');
+                    if (canvas) {
+                        this.signaturePad = new SignaturePad(canvas);
+                    }
+                },
+
+                clearSignature() {
+                    if (this.signaturePad) {
+                        this.signaturePad.clear();
+                        this.form.nurse_signature = '';
+                    }
+                },
+
+                saveSignature() {
+                    if (this.signaturePad && !this.signaturePad.isEmpty()) {
+                        this.form.nurse_signature = this.signaturePad.toDataURL();
+                    } else {
+                        alert('Please provide a signature first.');
+                    }
+                },
+
                 async submitAssessment() {
                     if (!this.isFormValid()) {
                         this.errorMessage = 'Please complete all required fields and fix validation errors.';
@@ -728,14 +764,34 @@
                     this.successMessage = '';
 
                     try {
+                        // Get signature data
+                        this.form.nurse_signature = this.saveSignature();
+
                         const assessmentData = {
                             ...this.form,
                             visit_id: this.visitId,
                             assessed_at: new Date().toISOString()
                         };
 
-                        const response = await fetch('/api/assessments/nursing', {
-                            method: 'POST',
+                        // Check if assessment already exists
+                        const existingResponse = await fetch(`/api/forms/check-eval/${this.visitId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        let method = 'POST';
+                        let url = '/api/forms/check-eval';
+
+                        if (existingResponse.ok) {
+                            const existingData = await existingResponse.json();
+                            method = 'PUT';
+                            url = `/api/forms/check-eval/${existingData.assessment_id}`;
+                        }
+
+                        const response = await fetch(url, {
+                            method: method,
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
@@ -744,12 +800,17 @@
                         });
 
                         if (response.ok) {
+                            const result = await response.json();
+                            
+                            // Update visit status to 'nursing_completed'
+                            await this.updateVisitStatus('nursing_completed');
+                            
                             this.successMessage = 'Nursing assessment completed successfully!';
                             this.clearDraft();
                             
-                            // Redirect after success
+                            // Redirect to physician form
                             setTimeout(() => {
-                                window.location.href = this.visitId ? `/visits/${this.visitId}` : '/visits';
+                                window.location.href = `forms-physician.html?visit_id=${this.visitId}`;
                             }, 2000);
                         } else if (response.status === 401) {
                             window.location.href = '/login';
@@ -762,6 +823,25 @@
                         this.errorMessage = 'Network error. Please check your connection and try again.';
                     } finally {
                         this.loading = false;
+                    }
+                },
+
+                async updateVisitStatus(status) {
+                    try {
+                        const response = await fetch(`/api/visits/${this.visitId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            },
+                            body: JSON.stringify({ visit_status: status })
+                        });
+
+                        if (!response.ok) {
+                            console.error('Failed to update visit status');
+                        }
+                    } catch (error) {
+                        console.error('Error updating visit status:', error);
                     }
                 }
             }));

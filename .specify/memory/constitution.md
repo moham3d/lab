@@ -1,7 +1,7 @@
 <!-- Sync Impact Report
-Version change: 1.0.0 → 1.1.0
-List of modified principles: None
-Added sections: Principles 6-11 (Frontend Development)
+Version change: 1.1.0 → 1.2.0
+List of modified principles: Principle 4 updated for signatures
+Added sections: Principle 12 (Visit Workflow)
 Removed sections: None
 Templates requiring updates: None (no templates exist)
 Follow-up TODOs: None
@@ -11,11 +11,11 @@ Follow-up TODOs: None
 
 **Project Name:** Patient Visit Management System
 
-**Constitution Version:** 1.1.0
+**Constitution Version:** 1.2.0
 
 **Ratification Date:** TODO(RATIFICATION_DATE): Original adoption date not specified
 
-**Last Amended Date:** 2025-09-21
+**Last Amended Date:** 2025-09-23
 
 ## Principles
 
@@ -35,9 +35,9 @@ Visits MUST be linked to a patient, created by a user, and include a timestamp. 
 Rationale: Tracks patient interactions over time, enabling chronological medical history.
 
 ### Principle 4: Forms / Evaluations
-The system MUST support multiple form types: Check-Eval for nursing screening, vitals, and risk assessments; General Sheet for radiology info, chronic diseases, surgeries, and history; CT Form for detailed diagnostic info, chemo, radiotherapy, and diagnosis. Each form MUST be linked to a visit. A router /forms MUST provide separate endpoints for each form type.
+The system MUST support multiple form types: Check-Eval for nursing screening, vitals, and risk assessments; General Sheet for radiology info, chronic diseases, surgeries, and history; CT Form for detailed diagnostic info, chemo, radiotherapy, and diagnosis. Each form MUST be linked to a visit and support handwritten signatures for tablet/stylus input. A router /forms MUST provide separate endpoints for each form type.
 
-Rationale: Captures comprehensive medical evaluations and assessments critical for patient care and compliance.
+Rationale: Captures comprehensive medical evaluations and assessments critical for patient care and compliance, with secure signature capture.
 
 ### Principle 5: Reports
 Reports MUST be linked to a patient and visit, containing summary and doctor notes. A router /reports MUST be provided.
@@ -69,10 +69,10 @@ Role-based dashboards with statistics, activity feeds, and quick actions MUST be
 
 Rationale: Enables data-driven decision making and operational oversight.
 
-### Principle 11: Admin Data Management
-Admin interfaces MUST provide full CRUD operations, bulk data management, user management, audit trails, and advanced reporting. Data validation, duplicate detection, and archiving capabilities MUST be included.
+### Principle 12: Visit Workflow
+The system MUST follow a structured patient visit process: reception initiates new visits by searching patients by SSN; if patient data exists, it loads into nursing assessment forms (Check-Eval); the visit is saved with nursing data; then the patient proceeds to physician evaluation using General Sheet forms. All forms MUST support handwritten signatures captured via tablet and stylus.
 
-Rationale: Ensures comprehensive system administration and data integrity.
+Rationale: Ensures standardized, compliant patient visit management with proper sequential documentation and signature authentication.
 
 ## Governance
 

@@ -9,14 +9,18 @@ from app.api.deps import get_current_user
 
 router = APIRouter()
 
-@router.get("/", response_model=List[PatientResponse])
-async def get_patients(
-    skip: int = 0, limit: int = 100,
+@router.get("/search", response_model=List[PatientResponse])
+async def search_patients(
+    q: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieve a list of patients with pagination."""
-    result = await db.execute(select(Patient).offset(skip).limit(limit))
+    """Search patients by SSN or name."""
+    result = await db.execute(
+        select(Patient).where(
+            (Patient.ssn.contains(q)) | (Patient.full_name.ilike(f"%{q}%"))
+        ).limit(10)
+    )
     patients = result.scalars().all()
     return patients
 

@@ -70,8 +70,8 @@ class PatientVisit(Base):
     patient_ssn = Column(String(20), ForeignKey("patients.ssn"), nullable=False)
     # Date and time of the visit
     visit_date = Column(DateTime(timezone=True), server_default=func.now())
-    # Status of the visit: open, closed, etc.
-    visit_status = Column(String(20), default='open')
+    # Status of the visit: initiated, nursing_completed, physician_completed, closed
+    visit_status = Column(String(20), default='initiated')
     # Primary diagnosis
     primary_diagnosis = Column(Text)
     # Secondary diagnosis
@@ -361,6 +361,9 @@ class NursingAssessment(Base):
     # Date of reporting
     reporting_date = Column(DateTime(timezone=True))
     
+    # Nurse signature
+    nurse_signature = Column(Text)
+    
     # Audit fields
     # User who performed the assessment
     assessed_by = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
@@ -375,182 +378,56 @@ class RadiologyAssessment(Base):
     # Associated form submission
     submission_id = Column(UUID(as_uuid=True), ForeignKey("form_submissions.submission_id"), nullable=False)
     
-    # Physician and department info
-    # Name of the treating physician
-    treating_physician = Column(String(255))
-    # Department performing the procedure
-    department = Column(String(100))
-    
-    # Patient preparation
-    # Number of fasting hours
-    fasting_hours = Column(Integer)
-    # Whether the patient is diabetic
-    is_diabetic = Column(String(10), default='false')
-    # Blood sugar level
-    blood_sugar_level = Column(Integer)
-    # Patient weight in kg
-    weight_kg = Column(DECIMAL(5,2))
-    # Patient height in cm
-    height_cm = Column(DECIMAL(5,2))
-    
-    # Imaging procedure details
-    # Dose amount for the procedure
-    dose_amount = Column(DECIMAL(10,2))
-    # Time of preparation
-    preparation_time = Column(Text)
-    # Time of injection
-    injection_time = Column(Text)
-    # Site of injection
-    injection_site = Column(String(100))
-    # CTDI volume
-    ctd1vol = Column(DECIMAL(10,2))
-    # Dose length product
-    dlp = Column(DECIMAL(10,2))
-    # Whether contrast is used
-    uses_contrast = Column(String(10), default='false')
-    # Kidney function value
-    kidney_function_value = Column(DECIMAL(10,2))
-    
     # Study information
-    # Whether this is the first time for this study
-    is_first_time = Column(String(10), default='true')
-    # Whether comparison with previous study
-    is_comparison = Column(String(10), default='false')
-    # Code of previous study
-    previous_study_code = Column(String(50))
-    # Whether report is required
-    requires_report = Column(String(10), default='true')
-    # Whether CD is required
-    requires_cd = Column(String(10), default='false')
+    study_reason = Column(Text)
+    gypsum_splint = Column(String(10))  # yes/no
     
-    # Clinical information
-    # Diagnosis for the study
-    diagnosis = Column(Text)
-    # Reason for performing the study
-    reason_for_study = Column(Text)
+    # Medical history
+    chronic_disease = Column(String(10))  # yes/no
+    chronic_disease_details = Column(Text)
+    pacemaker = Column(String(10))  # yes/no
+    implants = Column(String(10))  # yes/no
+    implants_details = Column(Text)
+    pregnancy = Column(String(10))  # yes/no/not_applicable
     
-    # Assessment content
-    # Findings from the imaging
-    findings = Column(Text, nullable=False)
-    # Impression or conclusion
-    impression = Column(Text)
-    # Recommendations
-    recommendations = Column(Text)
+    # Symptoms
+    pain_numbness = Column(String(10))  # yes/no
+    pain_location = Column(Text)
+    pain_duration = Column(Text)
+    spinal_deformities = Column(String(10))  # yes/no
+    swelling = Column(String(10))  # yes/no
+    swelling_location = Column(Text)
+    headache = Column(Boolean, default=False)
+    vision_problems = Column(Boolean, default=False)
+    hearing_problems = Column(Boolean, default=False)
+    imbalance = Column(Boolean, default=False)
     
-    # Technical details
-    # Imaging modality: CT, MRI, X-ray
-    modality = Column(String(50))
-    # Body region examined
-    body_region = Column(String(100))
-    # Contrast used
-    contrast_used = Column(Text)
-    
-    # Treatment history
-    # Whether the patient has chemotherapy
-    has_chemotherapy = Column(Boolean, default=False)
-    # Type of chemotherapy
-    chemo_type = Column(String(20))
-    # Details of chemotherapy
-    chemo_details = Column(Text)
-    # Number of chemotherapy sessions
-    chemo_sessions = Column(Integer)
-    # Date of last chemotherapy
-    chemo_last_date = Column(Date)
-    # Whether the patient has radiotherapy
-    has_radiotherapy = Column(Boolean, default=False)
-    # Site of radiotherapy
-    radiotherapy_site = Column(Text)
-    # Number of radiotherapy sessions
-    radiotherapy_sessions = Column(Integer)
-    # Date of last radiotherapy
-    radiotherapy_last_date = Column(Date)
-    # Whether the patient has hormonal treatment
-    has_hormonal_treatment = Column(Boolean, default=False)
-    # Date of last hormonal dose
-    hormonal_last_dose_date = Column(Date)
-    # Other treatments
-    other_treatments = Column(Text)
-    
-    # Previous imaging history
-    # Whether the patient has had operations
-    has_operations = Column(Boolean, default=False)
-    # Whether the patient has had endoscopy
-    has_endoscopy = Column(Boolean, default=False)
-    # Whether the patient has had biopsies
-    has_biopsies = Column(Boolean, default=False)
-    # Whether the patient has had Tc-DTPA kidney scan
-    has_tc_dtpa_kidney_scan = Column(Boolean, default=False)
-    # Whether the patient has had Tc-MDP bone scan
-    has_tc_mdp_bone_scan = Column(Boolean, default=False)
-    # Whether the patient has had MRI
-    has_mri = Column(Boolean, default=False)
-    # Whether the patient has had mammography
-    has_mammography = Column(Boolean, default=False)
-    # Whether the patient has had CT
-    has_ct = Column(Boolean, default=False)
-    # Whether the patient has had X-ray
-    has_xray = Column(Boolean, default=False)
-    # Whether the patient has had ultrasound
-    has_ultrasound = Column(Boolean, default=False)
-    # Whether the patient has had other imaging
-    has_other_imaging = Column(Boolean, default=False)
-    # Description of other imaging
-    other_imaging_desc = Column(Text)
-    
-    # General sheet additional fields
-    # Milliampere-seconds for X-ray exposure
-    mas = Column(DECIMAL(10,2))
-    # Kilovoltage for X-ray
-    kv = Column(DECIMAL(10,2))
-    # Is there a gypsum splint in the radiology workplace?
-    has_gypsum_splint = Column(Boolean, default=False)
-    # Does the patient have any chronic disease?
-    has_chronic_disease = Column(Boolean, default=False)
-    # Description of chronic disease
-    chronic_disease_desc = Column(Text)
-    # Does the patient have a pacemaker?
-    has_pacemaker = Column(Boolean, default=False)
-    # Have slats, screws, or artificial joints been installed?
-    has_slats_screws_joints = Column(Boolean, default=False)
-    # Is the patient pregnant? (for women)
-    is_pregnant = Column(Boolean, default=False)
-    # Does the patient have pain, numbness, or burning?
-    has_pain_numbness = Column(Boolean, default=False)
-    # Description of pain/numbness location and details
-    pain_numbness_desc = Column(Text)
-    # Does the patient have spinal deformities or warps?
-    has_spinal_deformities = Column(Boolean, default=False)
-    # Does the patient have any swelling?
-    has_swelling = Column(Boolean, default=False)
-    # Description of swelling location
-    swelling_desc = Column(Text)
-    # Does the patient have headache?
-    has_headache = Column(Boolean, default=False)
-    # Does the patient have fever?
-    has_fever = Column(Boolean, default=False)
-    # Does the patient have any history of tumors?
-    has_tumor_history = Column(Boolean, default=False)
-    # Location of the tumor
-    tumor_location = Column(Text)
-    # Type of the tumor
-    tumor_type = Column(String(100))
-    # Date of the operation
+    # Additional medical info
+    fever = Column(String(10))  # yes/no
+    previous_operations = Column(String(10))  # yes/no
     operation_date = Column(Date)
-    # Reason for the operation
     operation_reason = Column(Text)
-    # Type of previous investigation
-    previous_investigation_type = Column(String(100))
-    # Date of previous investigation
-    previous_investigation_date = Column(Date)
-    # Does the patient have slipped disc?
-    has_disc_slip = Column(Boolean, default=False)
-    # Medications that increase fall risk
-    medications_fall_risk = Column(Text)
-    # Current medications taken by the patient
-    current_medications = Column(Text)
-    # Patient signature
+    tumor_history = Column(String(10))  # yes/no
+    tumor_location = Column(Text)
+    tumor_type = Column(String(100))
+    previous_radiology = Column(String(10))  # yes/no
+    previous_radiology_type = Column(String(100))
+    previous_radiology_date = Column(Date)
+    disc_slip = Column(String(10))  # yes/no
+    drowsiness_medication = Column(Text)
+    current_medication = Column(Text)
+    
+    # Technical parameters
+    dlp = Column(String(50))
+    ctd1vol = Column(String(50))
+    mas = Column(String(50))
+    kv = Column(String(50))
+    
+    # Diagnosis
+    diagnosis = Column(Text)
+    
+    # Signatures
     patient_signature = Column(Text)
-    # Physician signature
     physician_signature = Column(Text)
     
     # Audit fields

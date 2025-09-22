@@ -304,28 +304,31 @@
                 
                 <form @submit.prevent="createVisit()">
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <!-- Patient Selection -->
+                        <!-- Patient SSN Search -->
                         <div class="form-group sm:col-span-2">
-                            <label for="patient_search" class="label">Patient *</label>
+                            <label for="patient_ssn" class="label">Patient SSN (رقم البطاقة) *</label>
                             <div class="relative">
                                 <input
                                     type="text"
-                                    id="patient_search"
-                                    x-model="newVisit.patient_search"
-                                    @input="searchPatients()"
+                                    id="patient_ssn"
+                                    x-model="newVisit.patient_ssn"
+                                    @input="searchPatientBySSN()"
                                     class="input-field"
-                                    placeholder="Search patient by name or SSN"
+                                    placeholder="Enter 14-digit SSN"
+                                    maxlength="14"
                                     required
                                 >
-                                <div x-show="patientSearchResults.length > 0" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto">
-                                    <template x-for="patient in patientSearchResults" :key="patient.ssn">
-                                        <div @click="selectPatient(patient)" class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-50">
-                                            <div class="flex items-center">
-                                                <span class="font-normal block truncate" x-text="patient.full_name"></span>
-                                                <span class="text-gray-500 ml-2 truncate" x-text="patient.ssn"></span>
-                                            </div>
+                                <div x-show="patientSearchResult" class="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-2 px-3 border">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900" x-text="patientSearchResult.full_name_arabic"></div>
+                                            <div class="text-xs text-gray-500" x-text="patientSearchResult.mobile"></div>
                                         </div>
-                                    </template>
+                                        <div class="text-xs text-green-600 font-medium">✓ Found</div>
+                                    </div>
+                                </div>
+                                <div x-show="!patientSearchResult && newVisit.patient_ssn.length === 14" class="absolute z-10 mt-1 w-full bg-red-50 border border-red-200 rounded-md py-2 px-3">
+                                    <div class="text-sm text-red-600">Patient not found. Please check SSN.</div>
                                 </div>
                             </div>
                         </div>
@@ -404,7 +407,7 @@
                         <button type="button" @click="showNewVisitModal = false" class="btn-secondary">
                             Cancel
                         </button>
-                        <button title="Schedule Visit" type="submit" :disabled="!newVisit.patient_ssn || !newVisit.visit_date || !newVisit.visit_time" class="btn-primary">
+                        <button title="Schedule Visit" type="submit" :disabled="!patientSearchResult || !newVisit.visit_date || !newVisit.visit_time" class="btn-primary">
                             <span x-show="creatingVisit" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
                             <span x-text="creatingVisit ? 'Scheduling...' : 'Schedule Visit'"></span>
                         </button>
@@ -433,7 +436,6 @@
                     cancelled: 0
                 },
                 newVisit: {
-                    patient_search: '',
                     patient_ssn: '',
                     visit_date: '',
                     visit_time: '',
@@ -441,7 +443,7 @@
                     provider_id: '',
                     notes: ''
                 },
-                patientSearchResults: [],
+                patientSearchResult: null,
                 providers: [
                     { id: 1, name: 'Dr. Ahmed Hassan' },
                     { id: 2, name: 'Dr. Sarah Mohamed' },
@@ -541,27 +543,28 @@
                     return timeStr;
                 },
 
-                async searchPatients() {
-                    if (this.newVisit.patient_search.length < 2) {
-                        this.patientSearchResults = [];
+                async searchPatientBySSN() {
+                    if (this.newVisit.patient_ssn.length !== 14) {
+                        this.patientSearchResult = null;
                         return;
                     }
 
                     try {
-                        const response = await fetch(`/api/patients/search?q=${encodeURIComponent(this.newVisit.patient_search)}`, {
+                        const response = await fetch(`/api/patients/search?q=${this.newVisit.patient_ssn}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                             },
                         });
 
                         if (response.ok) {
-                            this.patientSearchResults = await response.json();
+                            const patients = await response.json();
+                            this.patientSearchResult = patients.length > 0 ? patients[0] : null;
                         } else {
-                            this.patientSearchResults = [];
+                            this.patientSearchResult = null;
                         }
                     } catch (error) {
-                        console.error('Failed to search patients:', error);
-                        this.patientSearchResults = [];
+                        console.error('Failed to search patient:', error);
+                        this.patientSearchResult = null;
                     }
                 },
 
@@ -593,12 +596,13 @@
                         });
 
                         if (response.ok) {
+                            const visitData = await response.json();
                             await this.refreshVisits();
                             this.showNewVisitModal = false;
                             this.resetNewVisitForm();
                             
-                            // Show success message
-                            this.$store.ui.showNotification('Visit scheduled successfully!', 'success');
+                            // Redirect to nursing assessment form
+                            window.location.href = `forms-nursing.html?visit_id=${visitData.visit_id}`;
                         } else if (response.status === 401) {
                             window.location.href = '/login';
                         } else {
@@ -615,7 +619,6 @@
 
                 resetNewVisitForm() {
                     this.newVisit = {
-                        patient_search: '',
                         patient_ssn: '',
                         visit_date: '',
                         visit_time: '',
@@ -623,7 +626,7 @@
                         provider_id: '',
                         notes: ''
                     };
-                    this.patientSearchResults = [];
+                    this.patientSearchResult = null;
                 },
 
                 async updateVisitStatus(visit, newStatus) {
