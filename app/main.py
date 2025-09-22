@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.db.init_db import create_tables
-from app.api.routes import auth, users, patients, visits, forms, reports
+from app.api.routes import auth, users, patients, visits, forms, reports, dashboard
 import logging
 
 # Configure logging
@@ -53,6 +53,7 @@ app.include_router(patients.router, prefix="/api/v1/patients", tags=["Patients"]
 app.include_router(visits.router, prefix="/api/v1/visits", tags=["Visits"])
 app.include_router(forms.router, prefix="/api/v1/forms", tags=["Forms"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
 
 @app.on_event("startup")
 async def startup_event():

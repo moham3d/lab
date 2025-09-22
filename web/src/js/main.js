@@ -157,17 +157,28 @@ if (typeof Alpine !== 'undefined') {
     async loadPatients() {
       this.loading = true;
       try {
+        const token = Alpine.store('auth').token;
+        if (!token) {
+          console.error('No auth token available for patients');
+          Alpine.store('auth').clearAuth();
+          window.location.href = '/login';
+          return;
+        }
+
         const response = await fetch('/api/patients', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Authorization': `Bearer ${token}`,
           },
         });
 
         if (response.ok) {
           this.patients = await response.json();
-        } else if (response.status === 401) {
+        } else if (response.status === 401 || response.status === 403) {
+          console.error('Authentication failed for patients, clearing auth');
+          Alpine.store('auth').clearAuth();
           window.location.href = '/login';
         } else {
+          console.error('Failed to load patients:', response.status, response.statusText);
           this.patients = [];
         }
       } catch (error) {
@@ -187,7 +198,7 @@ if (typeof Alpine !== 'undefined') {
       try {
         const response = await fetch(`/api/patients/search?q=${encodeURIComponent(query)}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Authorization': `Bearer ${Alpine.store('auth').token}`,
           },
         });
 
@@ -206,7 +217,7 @@ if (typeof Alpine !== 'undefined') {
       try {
         const response = await fetch(`/api/patients/${ssn}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Authorization': `Bearer ${Alpine.store('auth').token}`,
           },
         });
 
@@ -250,18 +261,29 @@ if (typeof Alpine !== 'undefined') {
     async loadVisits() {
       this.loading = true;
       try {
+        const token = Alpine.store('auth').token;
+        if (!token) {
+          console.error('No auth token available for visits');
+          Alpine.store('auth').clearAuth();
+          window.location.href = '/login';
+          return;
+        }
+
         const response = await fetch('/api/visits', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Authorization': `Bearer ${token}`,
           },
         });
 
         if (response.ok) {
           this.visits = await response.json();
           this.calculateStats();
-        } else if (response.status === 401) {
+        } else if (response.status === 401 || response.status === 403) {
+          console.error('Authentication failed for visits, clearing auth');
+          Alpine.store('auth').clearAuth();
           window.location.href = '/login';
         } else {
+          console.error('Failed to load visits:', response.status, response.statusText);
           this.visits = [];
         }
       } catch (error) {
@@ -287,7 +309,7 @@ if (typeof Alpine !== 'undefined') {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            'Authorization': `Bearer ${Alpine.store('auth').token}`
           },
           body: JSON.stringify({ status: newStatus })
         });
@@ -416,215 +438,6 @@ if (typeof Alpine !== 'undefined') {
       });
       return missing;
     }
-  });
-}
-
-// Utility functions
-window.utils = {
-  formatDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  },
-
-  formatTime(timeStr) {
-    if (!timeStr) return '';
-    return timeStr;
-  },
-
-  formatDateTime(dateTimeStr) {
-    if (!dateTimeStr) return '';
-    const date = new Date(dateTimeStr);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  },
-
-  calculateAge(birthDate) {
-    if (!birthDate) return null;
-    
-    const birth = new Date(birthDate);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    
-    return age;
-  },
-
-  debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  },
-
-  // Egyptian SSN validation
-  validateSSN(ssn) {
-    return /^\d{14}$/.test(ssn);
-  },
-
-  // Egyptian mobile validation
-  validateMobile(mobile) {
-    return /^01[0-2]\d{8}$/.test(mobile);
-  },
-
-  // API request helper
-  async apiRequest(url, options = {}) {
-    const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        ...options.headers
-      }
-    };
-
-    try {
-      const response = await fetch(url, { ...defaultOptions, ...options });
-      
-      if (response.status === 401) {
-        window.location.href = '/login';
-        return null;
-      }
-
-      return response;
-    } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
-    }
-  }
-};
-
-    removeNotification(id) {
-      this.notifications = this.notifications.filter((n) => n.id !== id);
-    },
-
-    clearNotifications() {
-      this.notifications = [];
-    },
-  });
-
-  // Patient store for current patient context
-  Alpine.store('patient', {
-    current: null,
-    searchResults: [],
-    loading: false,
-
-    setCurrent(patient) {
-      this.current = patient;
-    },
-
-    clearCurrent() {
-      this.current = null;
-    },
-
-    async search(query) {
-      this.loading = true;
-      try {
-        const response = await fetch(
-          `/api/patients/search?q=${encodeURIComponent(query)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${Alpine.store('auth').token}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          this.searchResults = await response.json();
-        } else {
-          this.searchResults = [];
-        }
-      } catch (error) {
-        console.error('Patient search error:', error);
-        this.searchResults = [];
-      } finally {
-        this.loading = false;
-      }
-    },
-  });
-
-  // Form store for dynamic forms
-  Alpine.store('form', {
-    data: {},
-    errors: {},
-    loading: false,
-
-    init(formData = {}) {
-      this.data = { ...formData };
-      this.errors = {};
-      this.loading = false;
-    },
-
-    setField(field, value) {
-      this.data[field] = value;
-      // Clear field error when user starts typing
-      if (this.errors[field]) {
-        delete this.errors[field];
-      }
-    },
-
-    setErrors(errors) {
-      this.errors = errors;
-    },
-
-    validate() {
-      // Basic validation - extend as needed
-      const errors = {};
-
-      // Add field-specific validation here
-
-      this.errors = errors;
-      return Object.keys(errors).length === 0;
-    },
-
-    async submit(url, method = 'POST') {
-      if (!this.validate()) {
-        return { success: false, errors: this.errors };
-      }
-
-      this.loading = true;
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${Alpine.store('auth').token}`,
-          },
-          body: JSON.stringify(this.data),
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          return { success: true, data: result };
-        } else {
-          this.setErrors(result.detail || result);
-          return { success: false, errors: this.errors };
-        }
-      } catch (error) {
-        console.error('Form submission error:', error);
-        return { success: false, error: error.message };
-      } finally {
-        this.loading = false;
-      }
-    },
   });
 }
 
@@ -852,18 +665,28 @@ document.addEventListener('alpine:init', () => {
     async loadPatients() {
       this.loading = true;
       try {
+        const token = Alpine.store('auth').token;
+        if (!token) {
+          console.error('No auth token available for patients page');
+          Alpine.store('auth').clearAuth();
+          window.location.href = '/login';
+          return;
+        }
+
         const response = await fetch('/api/patients', {
           headers: {
-            Authorization: `Bearer ${Alpine.store('auth').token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
         if (response.ok) {
           this.patients = await response.json();
-        } else if (response.status === 401) {
+        } else if (response.status === 401 || response.status === 403) {
+          console.error('Authentication failed for patients page, clearing auth');
           Alpine.store('auth').clearAuth();
           window.location.href = '/login';
         } else {
+          console.error('Failed to load patients:', response.status, response.statusText);
           this.patients = [];
         }
       } catch (error) {
