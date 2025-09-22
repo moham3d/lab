@@ -295,7 +295,7 @@
                             <button type="button" @click="window.location.href='/patients'" class="btn-secondary">
                                 Cancel
                             </button>
-                            <button type="submit" :disabled="loading || !isFormValid()" class="btn-primary">
+                            <button title="Register Patient" type="submit" :disabled="loading || !isFormValid()" class="btn-primary">
                                 <span x-show="loading" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
                                 <span x-text="loading ? 'Saving...' : 'Register Patient'"></span>
                             </button>

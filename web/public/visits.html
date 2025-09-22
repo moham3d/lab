@@ -93,7 +93,7 @@
 
                             <!-- Status Filter -->
                             <div class="min-w-0 flex-1 sm:max-w-xs">
-                                <select x-model="statusFilter" @change="filterVisits()" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                                <select title="Filter by status" x-model="statusFilter" @change="filterVisits()" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
                                     <option value="">All Statuses</option>
                                     <option value="scheduled">Scheduled</option>
                                     <option value="in_progress">In Progress</option>
@@ -104,7 +104,7 @@
 
                             <!-- Date Filter -->
                             <div class="min-w-0 flex-1 sm:max-w-xs">
-                                <input 
+                                <input title="Filter by date"
                                     type="date" 
                                     x-model="dateFilter"
                                     @change="filterVisits()"
@@ -404,7 +404,7 @@
                         <button type="button" @click="showNewVisitModal = false" class="btn-secondary">
                             Cancel
                         </button>
-                        <button type="submit" :disabled="!newVisit.patient_ssn || !newVisit.visit_date || !newVisit.visit_time" class="btn-primary">
+                        <button title="Schedule Visit" type="submit" :disabled="!newVisit.patient_ssn || !newVisit.visit_date || !newVisit.visit_time" class="btn-primary">
                             <span x-show="creatingVisit" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
                             <span x-text="creatingVisit ? 'Scheduling...' : 'Schedule Visit'"></span>
                         </button>
