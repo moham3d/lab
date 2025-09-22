@@ -1,7 +1,7 @@
 <!-- Sync Impact Report
-Version change: 1.1.0 → 1.2.0
-List of modified principles: Principle 4 updated for signatures
-Added sections: Principle 12 (Visit Workflow)
+Version change: 1.2.0 → 1.3.0
+List of modified principles: Principle 1 updated for admin role access control
+Added sections: Principle 13 (Admin Dashboard and Access Control), Principle 14 (Data Import and Export)
 Removed sections: None
 Templates requiring updates: None (no templates exist)
 Follow-up TODOs: None
@@ -11,7 +11,7 @@ Follow-up TODOs: None
 
 **Project Name:** Patient Visit Management System
 
-**Constitution Version:** 1.2.0
+**Constitution Version:** 1.3.0
 
 **Ratification Date:** TODO(RATIFICATION_DATE): Original adoption date not specified
 
@@ -20,9 +20,9 @@ Follow-up TODOs: None
 ## Principles
 
 ### Principle 1: Users & Authentication
-The system MUST support user management with defined roles (nurse, physician, admin). Authentication MUST use JWT tokens with endpoints for login and register. Routers MUST include /auth for login and refresh, and /users for CRUD operations and role management.
+The system MUST support user management with defined roles (nurse, physician, admin). Authentication MUST use JWT tokens with endpoints for login and register. Routers MUST include /auth for login and refresh, and /users for CRUD operations and role management. Admin role MUST have exclusive access to reports, user management, and administrative functions.
 
-Rationale: Ensures secure, role-based access control essential for HIPAA compliance and protecting patient data.
+Rationale: Ensures secure, role-based access control essential for HIPAA compliance and protecting patient data, with administrative oversight capabilities.
 
 ### Principle 2: Patients
 Patients MUST have a unique ID, a 14-digit SSN, and demographic information. A router /patients MUST be provided for patient management.
@@ -73,6 +73,16 @@ Rationale: Enables data-driven decision making and operational oversight.
 The system MUST follow a structured patient visit process: reception initiates new visits by searching patients by SSN; if patient data exists, it loads into nursing assessment forms (Check-Eval); the visit is saved with nursing data; then the patient proceeds to physician evaluation using General Sheet forms. All forms MUST support handwritten signatures captured via tablet and stylus.
 
 Rationale: Ensures standardized, compliant patient visit management with proper sequential documentation and signature authentication.
+
+### Principle 13: Admin Dashboard and Access Control
+The system MUST provide an admin dashboard accessible only to users with admin role. Reports and new user creation forms MUST be restricted to admin access only. Admin dashboard MUST include system overview, user management, audit logs, and administrative controls.
+
+Rationale: Provides centralized administrative oversight and ensures sensitive functions are properly secured and monitored.
+
+### Principle 14: Data Import and Export
+The system MUST support data import and export functionality for admins. Import MUST support massive CSV file uploads for bulk data operations (patients, users, etc.). Export MUST provide data in multiple formats (CSV, Excel, PDF) with proper filtering and date range selection.
+
+Rationale: Enables efficient data management, migration, and reporting capabilities essential for healthcare administration and compliance.
 
 ## Governance
 
