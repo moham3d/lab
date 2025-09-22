@@ -22,6 +22,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./app/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./app/db/mock.sql:/docker-entrypoint-initdb.d/02-mock.sql
 
 volumes:

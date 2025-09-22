@@ -18,6 +18,22 @@ async def execute_schema():
 
         if result:
             print("Database tables already exist, skipping schema creation")
+            # Check if mock data exists
+            mock_result = await conn.fetchval("SELECT COUNT(*) FROM patients")
+            if mock_result and mock_result > 2:  # More than initial users
+                print("Mock data already exists, skipping mock data insertion")
+                return
+            else:
+                # Insert mock data
+                try:
+                    with open("app/db/mock.sql", "r") as f:
+                        mock_sql = f.read()
+                    await conn.execute(mock_sql)
+                    print("Mock data inserted successfully")
+                except FileNotFoundError:
+                    print("Mock data file not found, skipping")
+                except Exception as e:
+                    print(f"Error inserting mock data: {e}")
             return
 
         with open("app/db/schema.sql", "r") as f:
@@ -25,7 +41,7 @@ async def execute_schema():
         await conn.execute(schema_sql)
         print("Database tables created successfully")
 
-        # Execute mock data if file exists
+        # Execute mock data
         try:
             with open("app/db/mock.sql", "r") as f:
                 mock_sql = f.read()
