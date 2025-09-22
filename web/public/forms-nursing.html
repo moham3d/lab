@@ -87,17 +87,22 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Patient Information</h3>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">Name</dt>
-                            <dd class="mt-1 text-sm text-gray-900" x-text="patient?.full_name"></dd>
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500">Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900" x-text="patient?.full_name"></dd>
+                            </dl>
                         </div>
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">SSN</dt>
-                            <dd class="mt-1 text-sm text-gray-900" x-text="patient?.ssn"></dd>
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500">SSN</dt>
+                                <dd class="mt-1 text-sm text-gray-900" x-text="patient?.ssn"></dd>
+                            </dl>
                         </div>
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">Age</dt>
-                            <dd class="mt-1 text-sm text-gray-900" x-text="calculateAge(patient?.date_of_birth)"></dd>
-                        </div>
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500">Age</dt>
+                                <dd class="mt-1 text-sm text-gray-900" x-text="calculateAge(patient?.date_of_birth)"></dd>
+                            </dl>
                     </div>
                 </div>
             </div>
