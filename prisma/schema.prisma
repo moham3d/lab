@@ -1,0 +1,202 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  fullName  String
+  password  String?
+  role      Role     @default(NURSE)
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  visits    Visit[]
+  reports   Report[]
+  checkEval CheckEvalForm[]
+  generalSheet GeneralSheetForm[]
+
+  @@map("users")
+}
+
+model Patient {
+  ssn           String   @id @unique
+  mobileNumber  String
+  fullName      String
+  dateOfBirth   DateTime
+  gender        Gender
+  address       String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  visits Visit[]
+
+  @@map("patients")
+}
+
+model Visit {
+  id          String      @id @default(cuid())
+  patientSsn  String
+  visitDate   DateTime    @default(now())
+  visitStatus VisitStatus @default(OPEN)
+  notes       String?
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  patient     Patient            @relation(fields: [patientSsn], references: [ssn], onDelete: Cascade)
+  user        User               @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  checkEval   CheckEvalForm?
+  generalSheet GeneralSheetForm?
+  reports     Report[]
+
+  @@map("visits")
+}
+
+model CheckEvalForm {
+  id                        String   @id @default(cuid())
+  visitId                   String   @unique
+  userId                    String
+  temperatureCelsius        Float
+  pulseBpm                  Int
+  bloodPressureSystolic     Int
+  bloodPressureDiastolic    Int
+  respiratoryRatePerMin     Int
+  oxygenSaturationPercent   Float
+  weightKg                  Float
+  heightCm                  Float
+  chiefComplaint            String?
+  generalCondition          String?
+  consciousnessLevel        String?
+  skinCondition             String?
+  mobilityStatus            String?
+  isSmoker                  Boolean  @default(false)
+  hasAllergies              Boolean  @default(false)
+  dietType                  String   @default("regular")
+  appetite                  String   @default("good")
+  feedingStatus             String   @default("independent")
+  hygieneStatus             String   @default("independent")
+  toiletingStatus           String   @default("independent")
+  ambulationStatus          String   @default("independent")
+  painIntensity             Int      @default(0)
+  painLocation              String?
+  painFrequency             String?
+  painDuration              String?
+  painCharacter             String?
+  painActionTaken           String?
+  fallHistory3months        Boolean  @default(false)
+  secondaryDiagnosis        Boolean  @default(false)
+  ivTherapy                 Boolean  @default(false)
+  needsMedicationEducation  Boolean  @default(false)
+  dailyActivities           String   @default("independent")
+  hasSignsOfAbuse           Boolean  @default(false)
+  educationalNeeds          String?
+  morseFallScore            Int      @default(0)
+  fallRiskLevel             String   @default("low")
+  elderlyDailyActivities    String   @default("independent")
+  elderlyCognitiveAssessment String  @default("normal")
+  elderlyMoodAssessment     String   @default("normal")
+  elderlySpeechDisorder     Boolean  @default(false)
+  elderlyHearingDisorder    Boolean  @default(false)
+  elderlyVisionDisorder     Boolean  @default(false)
+  elderlySleepDisorder      Boolean  @default(false)
+  disabilityType            String?
+  hasAssistiveDevices      Boolean  @default(false)
+  hasAbuseNeglect          Boolean  @default(false)
+  abuseNeglectDetails      String?
+  nurseSignature            String?
+  assessmentDate            String?
+  assessmentTime            String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  // Relations
+  visit Visit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("check_eval_forms")
+}
+
+model GeneralSheetForm {
+  id                  String   @id @default(cuid())
+  visitId             String   @unique
+  userId              String
+  diagnosis           String?
+  reasonForStudy      String?
+  findings            String
+  impression          String?
+  recommendations     String?
+  modality            String?
+  bodyRegion          String?
+  hasChronicDisease   Boolean  @default(false)
+  hasPacemaker        Boolean  @default(false)
+  isPregnant          Boolean  @default(false)
+  hasPainNumbness     Boolean  @default(false)
+  hasSpinalDeformities Boolean @default(false)
+  hasSwelling         Boolean  @default(false)
+  hasHeadache         Boolean  @default(false)
+  hasFever            Boolean  @default(false)
+  hasTumorHistory     Boolean  @default(false)
+  hasDiscSlip         Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  visit Visit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("general_sheet_forms")
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  visitId     String
+  summary     String
+  doctorNotes String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  visit Visit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+enum Role {
+  NURSE
+  PHYSICIAN
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum VisitStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
